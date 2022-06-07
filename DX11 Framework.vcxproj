@@ -409,10 +409,12 @@
     <ClInclude Include="IMGui\imstb_truetype.h" />
     <ClInclude Include="Lighting.h" />
     <ClInclude Include="Materials.h" />
+    <ClInclude Include="Matrix.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="PixelShader.h" />
+    <ClInclude Include="Quanternion.h" />
     <ClInclude Include="Render.h" />
     <CLInclude Include="resource.h" />
     <ClInclude Include="Scene0.h" />
