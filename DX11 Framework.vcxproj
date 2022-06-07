@@ -423,6 +423,8 @@
     <ClInclude Include="Surface.h" />
     <ClInclude Include="TextureComponent.h" />
     <ClInclude Include="Transformation.h" />
+    <ClInclude Include="Vector.h" />
+    <ClInclude Include="VectorNote.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VertexShader.h" />
     <ResourceCompile Include="DX11 Framework.rc" />
