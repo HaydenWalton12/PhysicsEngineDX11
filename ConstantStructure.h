@@ -14,8 +14,4 @@ struct ConstantBuffer
 	Materials Mat;
 	Lighting Light;
 	XMFLOAT3 EyePosW;
-
-
-
-
 };

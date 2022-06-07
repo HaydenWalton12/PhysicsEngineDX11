@@ -113,9 +113,6 @@
     <ClInclude Include="IMGuiManager.h">
       <Filter>IMGui</Filter>
     </ClInclude>
-    <ClInclude Include="Lighting.h">
-      <Filter>HeaderFiles\Structures</Filter>
-    </ClInclude>
     <ClInclude Include="Materials.h">
       <Filter>HeaderFiles\Structures</Filter>
     </ClInclude>
@@ -163,6 +160,12 @@
     </ClInclude>
     <ClInclude Include="Quanternion.h">
       <Filter>HeaderFiles\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Shape.h">
+      <Filter>HeaderFiles\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Lighting.h">
+      <Filter>HeaderFiles\Structures</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

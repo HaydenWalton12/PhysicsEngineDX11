@@ -7,7 +7,6 @@
 
 //Matrix Class follows the same principles of the vector class, performs matrix calculations that enable physics calulations.
 
-
 class Mat2 {
 public:
 	Mat2() {}
@@ -270,10 +269,10 @@ public:
 
 	void Orient(Vec3 pos, Vec3 fwd, Vec3 up);
 	void LookAt(Vec3 pos, Vec3 lookAt, Vec3 up);
-	void PerspectiveOpenGL(float fovy, float aspect_ratio, float near, float far);
-	void PerspectiveVulkan(float fovy, float aspect_ratio, float near, float far);
-	void OrthoOpenGL(float xmin, float xmax, float ymin, float ymax, float znear, float zfar);
-	void OrthoVulkan(float xmin, float xmax, float ymin, float ymax, float znear, float zfar);
+	void PerspectiveOpenGL(float fovy, float aspect_ratio, float a, float b);
+	void PerspectiveVulkan(float fovy, float aspect_ratio, float a, float b);
+	void OrthoOpenGL(float xmin, float xmax, float ymin, float ymax, float za, float zb);
+	void OrthoVulkan(float xmin, float xmax, float ymin, float ymax, float za, float zb);
 
 	const float* ToPtr() const { return rows[0].ToPtr(); }
 	float* ToPtr() { return rows[0].ToPtr(); }
@@ -444,7 +443,7 @@ inline void Mat4::LookAt(Vec3 pos, Vec3 lookAt, Vec3 up) {
 	rows[3] = Vec4(0, 0, 0, 1);
 }
 
-inline void Mat4::PerspectiveOpenGL(float fovy, float aspect_ratio, float near, float far) {
+inline void Mat4::PerspectiveOpenGL(float fovy, float aspect_ratio, float a, float b) {
 	const float pi = acosf(-1.0f);
 	const float fovy_radians = fovy * pi / 180.0f;
 	const float f = 1.0f / tanf(fovy_radians * 0.5f);
@@ -453,11 +452,11 @@ inline void Mat4::PerspectiveOpenGL(float fovy, float aspect_ratio, float near, 
 
 	rows[0] = Vec4(xscale, 0, 0, 0);
 	rows[1] = Vec4(0, yscale, 0, 0);
-	rows[2] = Vec4(0, 0, (far + near) / (near - far), (2.0f * far * near) / (near - far));
+	rows[2] = Vec4(0, 0, (b + a) / (a - b), (2.0f * b * a) / (a - b));
 	rows[3] = Vec4(0, 0, -1, 0);
 }
 
-inline void Mat4::PerspectiveVulkan(float fovy, float aspect_ratio, float near, float far) {
+inline void Mat4::PerspectiveVulkan(float fovy, float aspect_ratio, float a, float b) {
 	// Vulkan changed its NDC.  It switch from a left handed coordinate system to a right handed one.
 	// +x points to the right, +z points into the screen, +y points down (it used to point up, in opengl).
 	// It also changed the range from [-1,1] to [0,1] for the z.
@@ -470,19 +469,19 @@ inline void Mat4::PerspectiveVulkan(float fovy, float aspect_ratio, float near, 
 	matVulkan.rows[3] = Vec4(0, 0, 0, 1);
 
 	Mat4 matOpenGL;
-	matOpenGL.PerspectiveOpenGL(fovy, aspect_ratio, near, far);
+	//matOpenGL.PerspectiveOpenGL(fovy, aspect_ratio, a, b);
 
 	*this = matVulkan * matOpenGL;
 }
 
-inline void Mat4::OrthoOpenGL(float xmin, float xmax, float ymin, float ymax, float znear, float zfar) {
+inline void Mat4::OrthoOpenGL(float xmin, float xmax, float ymin, float ymax, float za, float zb) {
 	const float width = xmax - xmin;
 	const float height = ymax - ymin;
-	const float depth = zfar - znear;
+	const float depth = zb - za;
 
 	const float tx = -(xmax + xmin) / width;
 	const float ty = -(ymax + ymin) / height;
-	const float tz = -(zfar + znear) / depth;
+	const float tz = -(zb + za) / depth;
 
 	rows[0] = Vec4(2.0f / width, 0, 0, tx);
 	rows[1] = Vec4(0, 2.0f / height, 0, ty);
@@ -490,7 +489,7 @@ inline void Mat4::OrthoOpenGL(float xmin, float xmax, float ymin, float ymax, fl
 	rows[3] = Vec4(0, 0, 0, 1);
 }
 
-inline void Mat4::OrthoVulkan(float xmin, float xmax, float ymin, float ymax, float znear, float zfar) {
+inline void Mat4::OrthoVulkan(float xmin, float xmax, float ymin, float ymax, float za, float zb) {
 	// Vulkan changed its NDC.  It switch from a left handed coordinate system to a right handed one.
 	// +x points to the right, +z points into the screen, +y points down (it used to point up, in opengl).
 	// It also changed the range from [-1,1] to [0,1] for the z.
@@ -503,7 +502,7 @@ inline void Mat4::OrthoVulkan(float xmin, float xmax, float ymin, float ymax, fl
 	matVulkan.rows[3] = Vec4(0, 0, 0, 1);
 
 	Mat4 matOpenGL;
-	matOpenGL.OrthoOpenGL(xmin, xmax, ymin, ymax, znear, zfar);
+	matOpenGL.OrthoOpenGL(xmin, xmax, ymin, ymax, za, zb);
 
 	*this = matVulkan * matOpenGL;
 }

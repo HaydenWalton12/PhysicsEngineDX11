@@ -2,9 +2,8 @@
 #include "Render.h"
 #include "Mesh.h"
 #include "Transformation.h"
-#include "Transformation.h"
 #include "Surface.h"
-
+#include "Lighting.h"
 #include "TextureComponent.h"
 #include "OBJLoader.h"
 

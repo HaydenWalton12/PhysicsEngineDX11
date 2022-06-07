@@ -420,6 +420,7 @@
     <ClInclude Include="Scene0.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="ShaderCompiler.h" />
+    <ClInclude Include="Shape.h" />
     <ClInclude Include="StaticCamera.h" />
     <ClInclude Include="Structures.h" />
     <ClInclude Include="Surface.h" />

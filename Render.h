@@ -10,7 +10,7 @@
 #include <directxcolors.h>//Color Math Library
 #include "ConstantStructure.h"
 #include "Lighting.h"
-#include "Time.h"
+
 #include "StaticCamera.h"
 #include "Surface.h"
 
@@ -73,9 +73,8 @@ public:
 	{
 		_pDeviceContext->PSSetSamplers(0, 1, &sampler);
 	}
-	void UpdateConstantBuffer(Camera* camera, XMFLOAT4X4 world, Surface object_surface)
+	void UpdateConstantBuffer(Camera* camera , XMFLOAT4X4 world, Surface object_surface)
 	{
-	
 		ConstantBuffer constantbuffer;
 		Lighting basicLight;
 		// Setup the scene's light
@@ -95,11 +94,14 @@ public:
 		constantbuffer.Mat.AmbientMtrl = object_surface.Ambient;
 		constantbuffer.Mat.DiffuseMtrl = object_surface.Diffuse;
 		constantbuffer.Mat.SpecularMtrl = object_surface.Specular;
+
+		//Actual Light In Environment
 		constantbuffer.Light.AmbientLight = basicLight.AmbientLight = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 		constantbuffer.Light.DiffuseLight = basicLight.DiffuseLight = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 		constantbuffer.Light.SpecularLight = basicLight.SpecularLight = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
 		constantbuffer.Light.LightVecW = basicLight.LightVecW = XMFLOAT3(2.0f, 10.0f, -1.0f);
 		constantbuffer.Light.SpecularPower = basicLight.SpecularPower = 20.0f;
+		
 		_pDeviceContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &constantbuffer, 0, 0);
 	}
 

@@ -22,7 +22,6 @@ public:
 
 	~SceneManager()
 	{
-		SceneObjects.clear();
 		SceneCameras.clear();
 
 		_pRenderCommand = nullptr;
@@ -34,7 +33,6 @@ public:
 	//Clears Scene Values
 	virtual void ExitScene()
 	{
-		SceneObjects.clear();
 		SceneCameras.clear();
 	}
 
@@ -65,7 +63,6 @@ public:
 	{}
 	ID3D11Device* _Device;
 	std::vector<Camera*> SceneCameras;
-	std::vector<Object*> SceneObjects;
 private:
 
 	RenderCommands* _pRenderCommand;							//Graphic Component Class pointer, needed to reference graphiccomponents for creation of object
