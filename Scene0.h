@@ -28,27 +28,25 @@ public:
 
 		Surface surface = Surface(Ambient, Diffuse, Specular, SpecularPower);
 
-
 		_Camera_Position = XMFLOAT3(0.0f, 10.0f, -15.0f);
 		_Camera_Direction = XMFLOAT3(0.0f, -0.5f, 0.5f);
 		_SceneCamera = new Camera(_Camera_Position, _Camera_Direction);
 
 		Body body;
-
 		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
-		body._Position = Vec3(0.0f, 1.0f, 0.0f);
+		body._Position = Vec3(0.0f, 50.0f, 0.0f);
 		body._InvMass = 1.0f;
-
 		body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
 		XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
+		
 		_SceneBodies.push_back(body);
 
 		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
 		body._InvMass = 0.0f;
 		body._Position = Vec3(0.0f, -50.0f, 0.0f);
-
-		body._Shape = new ShapeSphere(1000.0f, surface, _pRenderCommand, _Tex,
+		body._Shape = new ShapeSphere(30.0f, surface, _pRenderCommand, _Tex,
 		XMFLOAT3(0.0f, -100.0f, 0.0f), XMFLOAT3(10.0f, 10.0f, 10.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
+		
 		_SceneBodies.push_back(body);
 
 
@@ -61,24 +59,47 @@ public:
 		for (int i = 0; i < _SceneBodies.size(); i++)
 		{
 			Body* body = &_SceneBodies[i];
-		
+
 			//Gravity Needs To Be An Impulse 
 			// i = DP , F = dp/dt => dp = F * DT => I = F * dt
 			// F = MGS
 			float mass = 1.0f / body->_InvMass;
-			
+
 			Vec3 impulse_gravity = Vec3(0.0f, -10.0f, 0.0f) * mass * 0.01f;
 			body->AddImpulseLinear(impulse_gravity);
-
-			body->_Position += body->_LinearVelocity * 0.01f;
-			body->_Shape->_Object->_ObjectTransformation.SetTranslation(XMFLOAT3(body->_Position.x , body->_Position.y , body->_Position.z));
-			
-			body->_Shape->_Object->_ObjectTransformation.UpdateObject();
-			body->_Shape->_Object->Draw(_SceneCamera); 
 		}
+
+		for (size_t i = 0; i < _SceneBodies.size(); i++)
+		{
+			for (size_t j = i + 1; j < _SceneBodies.size(); j++)
+			{
+				Body* bodyA = &_SceneBodies[i];
+				Body* bodyB = &_SceneBodies[j];
+
+				//Skip If Inf Mass
+				if (0.0f == bodyA->_InvMass && 0.0f == bodyB->_InvMass)
+				{
+					continue;
+				}
+				if (Intersect(bodyA, bodyB))
+				{
+					bodyA->_LinearVelocity.Zero();
+					bodyB->_LinearVelocity.Zero();
+
+				}
+			}
+		}
+		for (int l = 0; l < _SceneBodies.size(); l++)
+		{
+			Body* body = &_SceneBodies[l];
+			body->_Position += body->_LinearVelocity * 0.01f;
+			body->_Shape->_Object->_ObjectTransformation.SetTranslation(XMFLOAT3(body->_Position.x, body->_Position.y, body->_Position.z));
+			body->_Shape->_Object->_ObjectTransformation.UpdateObject();
+			body->_Shape->_Object->Draw(_SceneCamera);
+
+		}
+
 	}
-
-
 
 
 	void DrawUI()
@@ -109,6 +130,22 @@ public:
 
 	}
 
+	bool Intersect(const Body* A, const Body* B)
+	{
+		Vec3 ab = B->_Position - A->_Position;
+
+		const ShapeSphere* a_sphere = (const ShapeSphere*)A->_Shape;
+		const ShapeSphere* b_sphere = (const ShapeSphere*)B->_Shape;
+
+		const float radiusAB = a_sphere->_Radius + b_sphere->_Radius;
+		const float lengthSquare = ab.GetLengthSqr();
+
+		if (lengthSquare <= (radiusAB * radiusAB))
+		{
+			return true;
+		}
+		return false;
+	}
 
 private:
 	Camera* _SceneCamera;

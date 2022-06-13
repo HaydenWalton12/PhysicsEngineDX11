@@ -167,6 +167,9 @@
     <ClInclude Include="Lighting.h">
       <Filter>HeaderFiles\Structures</Filter>
     </ClInclude>
+    <ClInclude Include="Collision.h">
+      <Filter>HeaderFiles\Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
