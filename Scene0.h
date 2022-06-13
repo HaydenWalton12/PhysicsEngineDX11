@@ -74,7 +74,7 @@ public:
 			body->_Shape->_Object->_ObjectTransformation.SetTranslation(XMFLOAT3(body->_Position.x , body->_Position.y , body->_Position.z));
 			
 			body->_Shape->_Object->_ObjectTransformation.UpdateObject();
-			body->_Shape->_Object->Draw(_SceneCamera);
+			body->_Shape->_Object->Draw(_SceneCamera); 
 		}
 	}
 
