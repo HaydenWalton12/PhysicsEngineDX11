@@ -36,23 +36,45 @@ public:
 		Body body;
 
 		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
-		body._Position = Vec3(0.0f, 0.0f, 0.0f);
+		body._Position = Vec3(0.0f, 1.0f, 0.0f);
+		body._InvMass = 1.0f;
+
 		body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
 		XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
 		_SceneBodies.push_back(body);
+
+		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
+		body._InvMass = 0.0f;
+		body._Position = Vec3(0.0f, -50.0f, 0.0f);
+
+		body._Shape = new ShapeSphere(1000.0f, surface, _pRenderCommand, _Tex,
+		XMFLOAT3(0.0f, -100.0f, 0.0f), XMFLOAT3(10.0f, 10.0f, 10.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
+		_SceneBodies.push_back(body);
+
 
 	}
 	void Update(float delta_time) override
 	{
 		DrawUI();
 		_SceneCamera->UpdateCamera();
-
+		//Update Then Draw
 		for (int i = 0; i < _SceneBodies.size(); i++)
 		{
 			Body* body = &_SceneBodies[i];
+		
+			//Gravity Needs To Be An Impulse 
+			// i = DP , F = dp/dt => dp = F * DT => I = F * dt
+			// F = MGS
+			float mass = 1.0f / body->_InvMass;
+			
+			Vec3 impulse_gravity = Vec3(0.0f, -10.0f, 0.0f) * mass * 0.01f;
+			body->AddImpulseLinear(impulse_gravity);
+
+			body->_Position += body->_LinearVelocity * 0.01f;
+			body->_Shape->_Object->_ObjectTransformation.SetTranslation(XMFLOAT3(body->_Position.x , body->_Position.y , body->_Position.z));
+			
 			body->_Shape->_Object->_ObjectTransformation.UpdateObject();
 			body->_Shape->_Object->Draw(_SceneCamera);
-
 		}
 	}
 
@@ -102,6 +124,8 @@ private:
 	Body body;
 
 	Object* _Sphere;
+
+	Object* _Plane;
 
 	std::vector<Body> _SceneBodies;
 };
