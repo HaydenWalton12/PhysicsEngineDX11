@@ -58,6 +58,7 @@ public:
 		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
 		body._Position = Vec3(0.0f, 0.0f, 0.0f);
 		body._InvMass = 1.0f;
+		body._Elasicity = 0.5f;
 		body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
 		XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
 		
@@ -65,6 +66,8 @@ public:
 
 		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
 		body._InvMass = 0.0f;
+		body._Elasicity = 1.0f;
+
 		body._Position = Vec3(0.0f, -50.0f, 0.0f);
 		body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
 			XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
@@ -132,11 +135,14 @@ public:
 		const float invMassA = A->_InvMass;
 		const float invMassB = B->_InvMass;
 
+		const float elasicityA = A->_Elasicity;
+		const float elasicityB = B->_Elasicity;
+		const float TotalElasicity = elasicityA * elasicityB;
 		//Calculate Collision Impulse
 		const Vec3& n = contact.Normal;
 		const Vec3 vab = A->_LinearVelocity - B->_LinearVelocity;
 
-		const float ImpulseJ = -2.0f * vab.Dot(n) / (invMassA + invMassB);
+		const float ImpulseJ = -(1.0f + TotalElasicity) * vab.Dot(n) / (invMassA + invMassB);
 		const Vec3 VecImpulseJ = n * ImpulseJ;
 
 		A->AddImpulseLinear(VecImpulseJ * 1.0f);
