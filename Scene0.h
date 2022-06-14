@@ -50,13 +50,13 @@ public:
 
 		Surface surface = Surface(Ambient, Diffuse, Specular, SpecularPower);
 
-		_Camera_Position = XMFLOAT3(0.0f, -40.0f, -15.0f);
+		_Camera_Position = XMFLOAT3(0.0f, 20.0f, -50.0f);
 		_Camera_Direction = XMFLOAT3(0.0f, -0.05f, 0.05f);
 		_SceneCamera = new Camera(_Camera_Position, _Camera_Direction);
 
 		Body body;
 		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
-		body._Position = Vec3(0.0f, 50.0f, 0.0f);
+		body._Position = Vec3(0.0f, 0.0f, 0.0f);
 		body._InvMass = 1.0f;
 		body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
 		XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
@@ -87,7 +87,7 @@ public:
 			// F = MGS
 			float mass = 1.0f / body->_InvMass;
 
-			Vec3 impulse_gravity = Vec3(0.0f, -10.0f, 0.0f) * mass * 0.01f;
+			Vec3 impulse_gravity = Vec3(0.0f, -0.005f, 0.0f) * mass * 0.01f;
 			body->AddImpulseLinear(impulse_gravity);
 		}
 
@@ -129,8 +129,18 @@ public:
 		Body* A = contact._BodyA;
 		Body* B = contact._BodyB;
 
-		A->_LinearVelocity.Zero();
-		B->_LinearVelocity.Zero();
+		const float invMassA = A->_InvMass;
+		const float invMassB = B->_InvMass;
+
+		//Calculate Collision Impulse
+		const Vec3& n = contact.Normal;
+		const Vec3 vab = A->_LinearVelocity - B->_LinearVelocity;
+
+		const float ImpulseJ = -2.0f * vab.Dot(n) / (invMassA + invMassB);
+		const Vec3 VecImpulseJ = n * ImpulseJ;
+
+		A->AddImpulseLinear(VecImpulseJ * 1.0f);
+		B->AddImpulseLinear(VecImpulseJ * -1.0f);
 
 		const float tA = A->_InvMass / (A->_InvMass + B->_InvMass);
 		const float tB = B->_InvMass / (A->_InvMass + B->_InvMass);
