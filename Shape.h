@@ -81,11 +81,9 @@ public:
 	float _Elasicity;
 	Vec3 _LinearVelocity;
 
-
-
-
 	void ApplyImpulse(Vec3 impulse_point , Vec3 impulse)
 	{
+		
 		if (0.0f == _InvMass)
 		{
 			return;
@@ -94,13 +92,10 @@ public:
 		AddImpulseLinear(impulse);
 
 		Vec3 position = GetCenterOfMassWorldSpace();
-
 		Vec3 r = impulse_point - position;
-
 		Vec3 dL = r.Cross(impulse);
 
 		AddImpulseAngular(dL);
-		
 	}
 
 	Mat3 GetInverseInertiaTensorBodySpace()

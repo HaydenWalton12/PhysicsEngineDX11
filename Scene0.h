@@ -209,22 +209,32 @@ public:
 
 		if (GetAsyncKeyState('W')) {
 			Body* body = &_SceneBodies[0];
-			body->ApplyImpulse(Vec3(0.0f, 0.00001f, 0.0f), Vec3(0.0f, 0.0001f, 0.0f));
+			body->AddImpulseLinear(Vec3(0.0f, 0.001f, 0.0f));
 
 		}
 		if (GetAsyncKeyState('A')) {
 			Body* body = &_SceneBodies[0];
-			body->ApplyImpulse(Vec3(-0.00001f, 0.0f, 0.0f) , Vec3(-0.0001f, 0.0f, 0.0f));
+			body->AddImpulseLinear(Vec3(-0.001f, 0.0f, 0.0f));
 
 		}
 		if (GetAsyncKeyState('D')) {
 			Body* body = &_SceneBodies[0];
-			body->ApplyImpulse(Vec3(0.00001f, 0.0f, 0.0f), Vec3(0.0001f, 0.0f, 0.0f));
+			body->AddImpulseLinear(Vec3(0.0001f, 0.0f, 0.0f));
 
 		}
 		if (GetAsyncKeyState('S')) {
 			Body* body = &_SceneBodies[0];
-			body->AddImpulseAngular(Vec3(0.00001f, 0.0f, 0.0f));
+			body->AddImpulseLinear(Vec3(0.0f, -0.001f, 0.0f));
+
+		}
+		if (GetAsyncKeyState('X')) {
+			Body* body = &_SceneBodies[0];
+			body->AddImpulseAngular(Vec3(0.0f, 0.001f, 0.0f));
+
+		}
+		if (GetAsyncKeyState('Z')) {
+			Body* body = &_SceneBodies[0];
+			body->AddImpulseAngular(Vec3(0.0f, -0.001f, 0.0f));
 
 		}
 	}
