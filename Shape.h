@@ -17,11 +17,15 @@ public:
 
 	//Inate Objects Will Be Passed Down To Child CLasses, Security Access Modifer Enabling Inheritance Principle
 	Object* _Object;
-	virtual Mat3 InertiaTensor() const;
-
 
 	//Will Be Explained Later - However an integral value to the Physics System
 	Vec3 _CentreOfMass;
+
+	virtual Mat3 InertiaTensor()
+	{
+		Mat3 o;
+		return o;
+	}
 
 };
 
@@ -53,7 +57,7 @@ public:
 		//This Object is needed to define the object within the framework
 	}
 
-	Mat3 InertiaTensor() const override
+	Mat3 InertiaTensor() override
 	{
 		Mat3 Tensor;
 		Tensor.Zero();
@@ -70,29 +74,49 @@ class Body
 public:
 
 	Vec3 _Position;
-	
-
-
 	Quat _Orientation;
 	Vec3 _AngularVelocity;
 	Shape* _Shape;
-
 	float _InvMass;
-	float _Elasicity; 
-
-	//Position of an body Change When They have velocity , alligned with a equation 
+	float _Elasicity;
 	Vec3 _LinearVelocity;
-	Mat3 GetInverseInertiaTensorBodySpace() const
+
+
+
+
+	void ApplyImpulse(Vec3 impulse_point , Vec3 impulse)
+	{
+		if (0.0f == _InvMass)
+		{
+			return;
+		}
+
+		AddImpulseLinear(impulse);
+
+		Vec3 position = GetCenterOfMassWorldSpace();
+
+		Vec3 r = impulse_point - position;
+
+		Vec3 dL = r.Cross(impulse);
+
+		AddImpulseAngular(dL);
+		
+	}
+
+	Mat3 GetInverseInertiaTensorBodySpace()
 	{
 		Mat3 inertiaTensor = _Shape->InertiaTensor();
 		Mat3 invInertiaTensor = inertiaTensor.Inverse() * _InvMass;
 		return invInertiaTensor;
 	}
-	Mat3 GetInverseInertiaTensorWorldSpace() const
+	Mat3 GetInverseInertiaTensorWorldSpace()
 	{
 		Mat3 inertiaTensor = _Shape->InertiaTensor();
 		Mat3 invInertiaTensor = inertiaTensor.Inverse() * _InvMass;
-		Mat3 orient 
+		Mat3 orient = _Orientation.ToMat3() * _InvMass;
+		invInertiaTensor = orient * invInertiaTensor * orient.Transpose();
+
+		return invInertiaTensor;
 	}
 	void AddImpulseLinear(const Vec3& impulse)
 	{
@@ -115,8 +139,40 @@ public:
 			return;
 		}
 
-		_AngularVelocity;
+		_AngularVelocity += GetInverseInertiaTensorWorldSpace() * impulse;
+
+		const float max_angular_speed = 30.0f;
+
+		if (_AngularVelocity.GetLengthSqr() > max_angular_speed * max_angular_speed)
+		{
+			_AngularVelocity.Normalize();
+			_AngularVelocity *= max_angular_speed;
+		}
 	}
+
+	void Update(float dt_sec , Camera* scene_camera)
+	{
+		Vec3 position_cm = GetCenterOfMassWorldSpace();
+		Vec3 cm_to_pos = _Position - position_cm;
+
+		Mat3 orientation = _Orientation.ToMat3();
+		Mat3 inertia_tensor = orientation * _Shape->InertiaTensor() * orientation.Transpose();
+
+		Vec3 alpha = inertia_tensor.Inverse() * (_AngularVelocity.Cross(inertia_tensor * _AngularVelocity += alpha * dt_sec));
+
+		Vec3 angle = _AngularVelocity * dt_sec;
+		Quat dq = Quat(angle, angle.GetMagnitude());
+		_Orientation = dq * _Orientation;
+		_Orientation.Normalize();
+
+		_Position = position_cm + dq.RotatePoint(cm_to_pos);
+		_Position += _LinearVelocity * 0.01f;
+		_Shape->_Object->_ObjectTransformation.SetTranslation(XMFLOAT3(_Position.x,_Position.y, _Position.z));
+		_Shape->_Object->_ObjectTransformation.SetRotation(XMFLOAT3(_AngularVelocity.x , _AngularVelocity.y , _AngularVelocity.z));
+		_Shape->_Object->_ObjectTransformation.UpdateObject();
+		_Shape->_Object->Draw(scene_camera);
+	}
+
 	//Applying The World Posstion  and Orietnation to the centre of mass will update the position relative to world space.
 	Vec3 GetCenterOfMassWorldSpace() const
 	{

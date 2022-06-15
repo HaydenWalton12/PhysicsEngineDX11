@@ -118,11 +118,9 @@ public:
 		for (int l = 0; l < _SceneBodies.size(); l++)
 		{
 			Body* body = &_SceneBodies[l];
+			body->Update(0.01f , _SceneCamera);
 			//Keep This Hear - Object Wont move if Contact Is True, Since Velocity is nullified
-			body->_Position += body->_LinearVelocity * 0.01f;
-			body->_Shape->_Object->_ObjectTransformation.SetTranslation(XMFLOAT3(body->_Position.x, body->_Position.y, body->_Position.z));
-			body->_Shape->_Object->_ObjectTransformation.UpdateObject();
-			body->_Shape->_Object->Draw(_SceneCamera);
+
 
 		}
 	}
@@ -184,9 +182,25 @@ public:
 
 	void PollInput(float delta_time) override
 	{
+
+		if (GetAsyncKeyState('W')) {
+			Body* body = &_SceneBodies[0];
+			body->ApplyImpulse(Vec3(0.0f, 0.00001f, 0.0f), Vec3(0.0f, 0.0001f, 0.0f));
+
+		}
+		if (GetAsyncKeyState('A')) {
+			Body* body = &_SceneBodies[0];
+			body->ApplyImpulse(Vec3(-0.00001f, 0.0f, 0.0f) , Vec3(-0.0001f, 0.0f, 0.0f));
+
+		}
+		if (GetAsyncKeyState('D')) {
+			Body* body = &_SceneBodies[0];
+			body->ApplyImpulse(Vec3(0.00001f, 0.0f, 0.0f), Vec3(0.0001f, 0.0f, 0.0f));
+
+		}
 		if (GetAsyncKeyState('S')) {
 			Body* body = &_SceneBodies[0];
-			body->_Position.y = 10.0f;
+			body->AddImpulseAngular(Vec3(0.00001f, 0.0f, 0.0f));
 
 		}
 	}
