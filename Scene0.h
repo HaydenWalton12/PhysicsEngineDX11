@@ -130,26 +130,50 @@ public:
 		Body* A = contact._BodyA;
 		Body* B = contact._BodyB;
 
+		Vec3 ptOnA = contact.ptOnA_WorldSpace;
+		Vec3 ptOnB = contact.ptOnB_WorldSpace;
+
 		const float invMassA = A->_InvMass;
 		const float invMassB = B->_InvMass;
 
 		const float elasicityA = A->_Elasicity;
 		const float elasicityB = B->_Elasicity;
 		const float TotalElasicity = elasicityA * elasicityB;
+		
+		Mat3 invWorldInertiaA = A->GetInverseInertiaTensorWorldSpace();
+		Mat3 invWorldInertiaB = B->GetInverseInertiaTensorWorldSpace();
+
+
 		//Calculate Collision Impulse
 		const Vec3& n = contact.Normal;
-		const Vec3 vab = A->_LinearVelocity - B->_LinearVelocity;
 
-		const float ImpulseJ = -(1.0f + TotalElasicity) * vab.Dot(n) / (invMassA + invMassB);
-		const Vec3 VecImpulseJ = n * ImpulseJ;
 
-		A->AddImpulseLinear(VecImpulseJ * 1.0f);
-		B->AddImpulseLinear(VecImpulseJ * -1.0f);
+		Vec3 ra = ptOnA - A->GetCenterOfMassWorldSpace();
+		Vec3 rB = ptOnB - B->GetCenterOfMassWorldSpace();
+
+		Vec3 angularJA = (invWorldInertiaA * ra.Cross(n) ).Cross(ra);
+		Vec3 angularJB = (invWorldInertiaB * ra.Cross(n) ).Cross(rB);
+		
+		float angular_factor = (angularJA + angularJB).Dot(n);
+
+		Vec3 velA = A->_LinearVelocity + A->_AngularVelocity.Cross(ra);
+		Vec3 velB = B->_LinearVelocity + B->_AngularVelocity.Cross(rB);
+
+		//Calcvulate Collision Impulse
+		Vec3 vab = velA - velB;
+
+
+		float impulseJ = (1.0f + TotalElasicity) * vab.Dot(n) / (invMassA + invMassB + angular_factor);
+		const Vec3 VecImpulseJ = n * impulseJ;
+
+		A->ApplyImpulse(ptOnA,VecImpulseJ * -1.0f);
+		B->ApplyImpulse(ptOnB,VecImpulseJ * 1.0f);
 
 		const float tA = A->_InvMass / (A->_InvMass + B->_InvMass);
 		const float tB = B->_InvMass / (A->_InvMass + B->_InvMass);
 
 		const Vec3 ds = contact.ptOnB_WorldSpace - contact.ptOnA_WorldSpace;
+
 
 		A->_Position += ds * tA;
 		B->_Position -= ds * tB;

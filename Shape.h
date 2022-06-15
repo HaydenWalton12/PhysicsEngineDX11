@@ -162,6 +162,7 @@ public:
 
 		Vec3 angle = _AngularVelocity * dt_sec;
 		Quat dq = Quat(angle, angle.GetMagnitude());
+
 		_Orientation = dq * _Orientation;
 		_Orientation.Normalize();
 
