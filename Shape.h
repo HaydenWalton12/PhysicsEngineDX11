@@ -11,7 +11,12 @@ public:
 		SHAPE_CUBE,
 		SHAPE_PLANE,
 	};
-	
+	virtual ShapeType GetType()
+	{
+		return type;
+	}
+
+	ShapeType type;
 
 	virtual Vec3 GetCentreOfMass() const { return _CentreOfMass; }
 
@@ -33,9 +38,13 @@ class ShapeSphere : public Shape
 {
 public:
 
+	ShapeType _ShapeType;
 
 	float _Radius;
-
+	ShapeType GetType() override
+	{
+		return _ShapeType;
+	}
 	ShapeSphere(float radius, Surface surface, RenderCommands* render, TextureComponent* tex, XMFLOAT3 translate, XMFLOAT3 scale, XMFLOAT3 rotate)
 	{
 		_Radius = radius;
@@ -51,7 +60,7 @@ public:
 		_Object->SetTransformation(translate, scale, rotate);
 
 		//Allows us to get the assigned type of Shape
-		ShapeType _ShapeType = SHAPE_SPHERE;
+	  _ShapeType = SHAPE_SPHERE;
 
 
 		//This Object is needed to define the object within the framework
@@ -77,6 +86,7 @@ public:
 	Quat _Orientation;
 	Vec3 _AngularVelocity;
 	Shape* _Shape;
+	float _Friction;
 	float _InvMass;
 	float _Elasicity;
 	Vec3 _LinearVelocity;

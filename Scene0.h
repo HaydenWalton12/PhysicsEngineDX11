@@ -58,7 +58,8 @@ public:
 		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
 		body._Position = Vec3(0.0f, 0.0f, 0.0f);
 		body._InvMass = 1.0f;
-		body._Elasicity = 0.5f;
+		body._Friction = 0.5f;
+		body._Elasicity = 0.0f;
 		body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
 		XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
 		
@@ -66,8 +67,8 @@ public:
 
 		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
 		body._InvMass = 0.0f;
-		body._Elasicity = 1.0f;
-
+		body._Elasicity = 0.0f;
+		body._Friction = 0.5f;
 		body._Position = Vec3(0.0f, -50.0f, 0.0f);
 		body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
 			XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
@@ -124,6 +125,85 @@ public:
 
 		}
 	}
+	bool RaySphere(Vec3 ray_start , Vec3 & ray_direction , Vec3 sphere_centre , float sphere_radius , float & t1, float & t2)
+	{
+		Vec3 m = sphere_centre - ray_start;
+		float a = ray_direction.Dot(ray_direction);
+		float b = m.Dot(ray_direction);
+		float c = m.Dot(m) - sphere_radius * sphere_radius;
+
+		float delta = b * b - a * c;
+
+		float invA = 1.0f / a;
+
+		if (delta < 0)
+		{
+			return false;
+		}
+
+		float delta_root = sqrtf(delta);
+		
+		t1 = invA * (b - delta_root);
+		t2 = invA * (b + delta_root);
+		
+		return true;
+
+	}
+
+	bool SphereSphereDynamic(ShapeSphere* sphere_a, ShapeSphere* sphere_b, Vec3& pos_a, Vec3& pos_b, Vec3& vel_a, Vec3& vel_b , float dt , Vec3& pt_On_A , Vec3& pt_On_B ,float& toi)
+	{
+
+		Vec3 relative_velocity = vel_a - vel_b;
+
+		Vec3 start_PT_a = pos_a;
+		Vec3 end_PT_a = pos_a + relative_velocity * dt;
+
+		Vec3 ray_direction = end_PT_a - start_PT_a;
+
+		float t0 = 0;
+		float t1 = 0;
+
+		if (ray_direction.GetLengthSqr() < 0.001f * 0.001f)
+		{
+			Vec3 ab = pos_b - pos_a;
+
+			float radius = sphere_a->_Radius + sphere_b->_Radius + 0.001f;
+			if (ab.GetLengthSqr() < radius * radius)
+			{
+				return false;
+			}
+
+		}
+		else if (!RaySphere(pos_a , ray_direction , pos_b , sphere_a->_Radius + sphere_b->_Radius , t0 , t1) )
+		{
+			return false;
+		}
+
+		t0 *= dt;
+		t1 *= dt;
+
+		if (t1 < 0.0f)
+		{
+			return false;
+
+		}
+		toi = (t0 < 0.0f) ? 0.0f : t0;
+
+		if (toi > dt)
+		{
+			return false;
+		}
+
+		Vec3 newPosA = pos_a + vel_a * toi;
+		Vec3 newPosB = pos_b + vel_b * toi;
+		Vec3 ab = newPosB - newPosA;
+		ab.Normalize();
+
+		pt_On_A = newPosA + ab * sphere_a->_Radius;
+		pt_On_B = newPosB + ab * sphere_b->_Radius;
+
+		return true;
+	}
 
 	void ResolveContacts(Contact contact)
 	{
@@ -133,20 +213,19 @@ public:
 		Vec3 ptOnA = contact.ptOnA_WorldSpace;
 		Vec3 ptOnB = contact.ptOnB_WorldSpace;
 
-		const float invMassA = A->_InvMass;
-		const float invMassB = B->_InvMass;
 
 		const float elasicityA = A->_Elasicity;
 		const float elasicityB = B->_Elasicity;
 		const float TotalElasicity = elasicityA * elasicityB;
-		
+
+		const float invMassA = A->_InvMass;
+		const float invMassB = B->_InvMass;
+
 		Mat3 invWorldInertiaA = A->GetInverseInertiaTensorWorldSpace();
 		Mat3 invWorldInertiaB = B->GetInverseInertiaTensorWorldSpace();
 
-
 		//Calculate Collision Impulse
 		const Vec3& n = contact.Normal;
-
 
 		Vec3 ra = ptOnA - A->GetCenterOfMassWorldSpace();
 		Vec3 rB = ptOnB - B->GetCenterOfMassWorldSpace();
@@ -162,17 +241,43 @@ public:
 		//Calcvulate Collision Impulse
 		Vec3 vab = velA - velB;
 
-
 		float impulseJ = (1.0f + TotalElasicity) * vab.Dot(n) / (invMassA + invMassB + angular_factor);
 		const Vec3 VecImpulseJ = n * impulseJ;
 
 		A->ApplyImpulse(ptOnA,VecImpulseJ * -1.0f);
 		B->ApplyImpulse(ptOnB,VecImpulseJ * 1.0f);
 
+		//Calculate The Impulse based upon friction
+
+		float frictionA = A->_Friction;
+		float frictionB = B->_Friction;
+
+		float TotalFriction = frictionA * frictionB;
+
+		Vec3 velNorm = n * n.Dot(vab);
+
+		Vec3 velTang = vab - velNorm;
+
+		Vec3 relativeVelTang = velTang;
+		relativeVelTang.Normalize();
+
+		Vec3 inertiaA = (invWorldInertiaA * ra.Cross(relativeVelTang)).Cross(ra);
+		Vec3 inertiaB = (invWorldInertiaB * rB.Cross(relativeVelTang)).Cross(rB);
+		float invInertia = (inertiaA + inertiaB).Dot(relativeVelTang);
+
+		float reducedMass = 1.0f / (A->_InvMass + B->_InvMass + invInertia);
+		Vec3 impulseFricion = velTang * reducedMass * TotalFriction;
+
+		//Kinetic Friction
+
+		A->ApplyImpulse(ptOnA, impulseFricion * -1.0f);
+		B->ApplyImpulse(ptOnB, impulseFricion * 1.0f);
+
+
 		const float tA = A->_InvMass / (A->_InvMass + B->_InvMass);
 		const float tB = B->_InvMass / (A->_InvMass + B->_InvMass);
 
-		const Vec3 ds = contact.ptOnB_WorldSpace - contact.ptOnA_WorldSpace;
+		const Vec3 ds = ptOnB - ptOnA;
 
 
 		A->_Position += ds * tA;
@@ -202,11 +307,8 @@ public:
 		//ImGui::Text("R - Reset Scene");
 		ImGui::End();
 	}
-
-
 	void PollInput(float delta_time) override
 	{
-
 		if (GetAsyncKeyState('W')) {
 			Body* body = &_SceneBodies[0];
 			body->AddImpulseLinear(Vec3(0.0f, 0.001f, 0.0f));
@@ -224,7 +326,7 @@ public:
 		}
 		if (GetAsyncKeyState('S')) {
 			Body* body = &_SceneBodies[0];
-			body->AddImpulseLinear(Vec3(0.0f, -0.001f, 0.0f));
+			body->AddImpulseLinear(Vec3(0.0f, -0.01f, 0.0f));
 
 		}
 		if (GetAsyncKeyState('X')) {
@@ -238,41 +340,57 @@ public:
 
 		}
 	}
-
 	bool Intersect( Body* A,  Body* B , Contact & contact)
 	{
-
 		contact._BodyA = A;
 		contact._BodyB = B;
 
-		Vec3 ab = B->_Position - A->_Position;
-
-		//Assign Normal Distance Between Objects
-		contact.Normal = ab;
-		contact.Normal.Normalize();
-
-
-		const ShapeSphere* a_sphere = (const ShapeSphere*)A->_Shape;
-		const ShapeSphere* b_sphere = (const ShapeSphere*)B->_Shape;
-
-
-		contact.ptOnA_WorldSpace = A->_Position + contact.Normal * a_sphere->_Radius;
-		contact.ptOnB_WorldSpace = B->_Position - contact.Normal * a_sphere->_Radius;
-
-
-		const float radiusAB = a_sphere->_Radius + b_sphere->_Radius;
-		const float lengthSquare = ab.GetLengthSqr();
-
-		if (lengthSquare <= (radiusAB * radiusAB))
+		if (A->_Shape->GetType() == Shape::SHAPE_SPHERE && B->_Shape->GetType() == Shape::SHAPE_SPHERE)
 		{
-			return true;
-		}
 
+			 ShapeSphere* a_sphere = ( ShapeSphere*)A->_Shape;
+			 ShapeSphere* b_sphere = ( ShapeSphere*)B->_Shape;
+
+			Vec3 pos_a = A->_Position;
+			Vec3 pos_b = B->_Position;
+
+			Vec3 vel_a = A->_LinearVelocity;
+			Vec3 vel_b = B->_LinearVelocity;
+
+			if (SphereSphereDynamic(a_sphere, b_sphere, pos_a, pos_b, vel_a, vel_b, 0.01, contact.ptOnA_WorldSpace, contact.ptOnB_WorldSpace, contact._TimeOfImpact))
+			{
+			
+				A->Update(contact._TimeOfImpact, _SceneCamera);
+				B->Update(contact._TimeOfImpact , _SceneCamera);
+
+				contact.ptOnA_WorldSpace = A->WorldSpaceToBodySpace(contact.ptOnA_WorldSpace);
+				contact.ptOnB_WorldSpace = B->WorldSpaceToBodySpace(contact.ptOnB_WorldSpace);
+
+				contact.Normal = A->_Position - B->_Position;
+				contact.Normal.Normalize();
+
+				//Unqind Time Step
+				A->Update(-contact._TimeOfImpact, _SceneCamera);
+				B->Update(-contact._TimeOfImpact, _SceneCamera);
+
+
+				Vec3 ab = B->_Position - A->_Position;
+				float r = ab.GetMagnitude() - (a_sphere->_Radius + b_sphere->_Radius);
+
+				contact._SeperationDistance = r;
+
+				return true;
+			}
+
+		}
 		return false;
 	}
+	int CompareContacts(void* p1, void* p2)
+	{
+		Contact a = (Contact*)p1;
+		Contact b = (Contact*)p1;
 
-	
-
+	}
 
 private:
 	Camera* _SceneCamera;
