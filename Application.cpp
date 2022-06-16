@@ -1,5 +1,14 @@
 #include "Application.h"
+
+#include <time.h>
+#include <chrono>
+#include <thread>
+
 #define FPS60 0.016f
+
+static bool gIsInitialized(false);
+static unsigned __int64 gTicksPerSecond;
+static unsigned __int64 gStartTicks;
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 //Callback function , processes message sent to the window.
@@ -31,6 +40,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
 
     return 0;
+}
+
+int GetTimeMicroseconds() {
+    if (false == gIsInitialized) {
+        gIsInitialized = true;
+
+        // Get the high frequency counter's resolution
+        QueryPerformanceFrequency((LARGE_INTEGER*)&gTicksPerSecond);
+
+        // Get the current time
+        QueryPerformanceCounter((LARGE_INTEGER*)&gStartTicks);
+
+        return 0;
+    }
+
+    unsigned __int64 tick;
+    QueryPerformanceCounter((LARGE_INTEGER*)&tick);
+
+    const double ticks_per_micro = (double)(gTicksPerSecond / 1000000);
+
+    const unsigned __int64 timeMicro = (unsigned __int64)((double)(tick - gStartTicks) / ticks_per_micro);
+    return (int)timeMicro;
 }
 
 //Initalises Window Coordinates , Projection Matrix & View Matrix 
@@ -156,6 +187,10 @@ Application::~Application()
 
 void Application::RenderFrame()
 {
+    static int timeLastFrame = 0;
+    static int numSamples = 0;
+    static float avgTime = 0.0f;
+    static float maxTime = 0.0f;
 
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -166,17 +201,45 @@ void Application::RenderFrame()
     //Potentially Switch Scene At This Point
     Input();
 
-
-
-
+    int time = GetTimeMicroseconds();
+    float dt_us = (float)time - (float)timeLastFrame;
+    if (dt_us < 16000.0f) {
+        int x = 16000 - (int)dt_us;
+        std::this_thread::sleep_for(std::chrono::microseconds(x));
+        dt_us = 16000;
+        time = GetTimeMicroseconds();
+    }
+    timeLastFrame = time;
+    printf("\ndt_ms: %.1f    ", dt_us * 0.001f);
+    
+    // If the time is greater than 33ms (30fps)
+        // then force the time difference to smaller
+        // to prevent super large simulation steps.
+    if (dt_us > 33000.0f) {
+        dt_us = 33000.0f;
+    }
+    
+    float dt_sec = dt_us * 0.001f * 0.001f;
 
     _pRenderCommands->ClearRenderTarget(_pDX11->_pRenderTargetView, _pDX11->_pDepthStencilView);
 
     //Get Scene Input
-    _pCurrentScene->PollInput(0.0016);
-
+    _pCurrentScene->PollInput(dt_sec * 0.5f);
+    int startTime = GetTimeMicroseconds();
     //Update Current Scene
-    _pCurrentScene->Update(0.0016);
+    _pCurrentScene->Update(dt_sec * 0.5);
+    int endTime = GetTimeMicroseconds();
+
+    dt_us = (float)endTime - (float)startTime;
+    if (dt_us > maxTime) {
+        maxTime = dt_us;
+    }
+
+    avgTime = (avgTime * float(numSamples) + dt_us) / float(numSamples + 1);
+    numSamples++;
+
+    printf("frame dt_ms: %.2f %.2f %.2f", avgTime * 0.001f, maxTime * 0.001f, dt_us * 0.001f);
+
 
     //Render IMGUI
     ImGui::Render();

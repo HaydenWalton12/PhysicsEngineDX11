@@ -3,28 +3,7 @@
 #include "Shape.h"
 #include <string>
 
-
-//Struct Used For Interpentration , utilising points of contacts between two bodies 
-struct Contact
-{
-	Vec3 ptOnA_WorldSpace;
-	Vec3 ptOnB_WorldSpace;
-
-	Vec3 ptOnA_LocalSpace;
-	Vec3 ptOnB_LocalSpace;
-	
-
-	//In World Space Coordinates , Normalizzed Direction From Point A-B Either World Or Local Space
-	Vec3 Normal;
-
-	//Value positive when non-pentrating , negative when penetratinhg
-	float _SeperationDistance;
-	float _TimeOfImpact;
-
-	 Body* _BodyA;
-	 Body* _BodyB;
-};
-
+#include "Collision.h"
 
 class Scene0 : public SceneManager
 {
@@ -50,81 +29,49 @@ public:
 
 		Surface surface = Surface(Ambient, Diffuse, Specular, SpecularPower);
 
-		_Camera_Position = XMFLOAT3(0.0f, 20.0f, -50.0f);
-		_Camera_Direction = XMFLOAT3(0.0f, -0.05f, 0.05f);
+		_Camera_Position = XMFLOAT3(0.0f, 10.0f, -10.0f);
+		_Camera_Direction = XMFLOAT3(0.0f, -0.01f, 0.01f);
 		_SceneCamera = new Camera(_Camera_Position, _Camera_Direction);
 
+
 		Body body;
+
+		body._Position = Vec3(-10.0f, 3.0f, 0.0f);
 		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
-		body._Position = Vec3(0.0f, 0.0f, 0.0f);
+		body._LinearVelocity = Vec3(0.0f, 0.0f, 0.0f);
 		body._InvMass = 1.0f;
-		body._Friction = 0.5f;
 		body._Elasicity = 0.0f;
+		body._Friction = 0.5f;
 		body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
-		XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
-		
+			XMFLOAT3(-5.0f, 3.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
+
 		_SceneBodies.push_back(body);
 
+
+		body._Position = Vec3(0.0f, 3.0f, 0.0f);
 		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
+		body._LinearVelocity = Vec3(0.0f, 0.0f, 0.0f);
+		body._InvMass = 1.0f;
+		body._Elasicity = 0.0f;
+		body._Friction = 0.5f;
+		body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
+			XMFLOAT3(0.0f, 3.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
+
+		_SceneBodies.push_back(body);
+
+		body._Position = Vec3(0.0f, -10.0f, 0.0f);
+		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
+		body._LinearVelocity = Vec3(0.0f, 0.0f, 0.0f);
 		body._InvMass = 0.0f;
 		body._Elasicity = 0.0f;
 		body._Friction = 0.5f;
-		body._Position = Vec3(0.0f, -50.0f, 0.0f);
-		body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
-			XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
-		
+		body._Shape = new ShapeSphere(10.0f, surface, _pRenderCommand, _Tex,
+			XMFLOAT3(0.0f, -10.0f, 0.0f), XMFLOAT3(10.0f, 10.0f, 10.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
+
 		_SceneBodies.push_back(body);
-
-
 	}
-	void Update(float delta_time) override
-	{
-		DrawUI();
-		_SceneCamera->UpdateCamera();
-		//Update Then Draw
-		for (int i = 0; i < _SceneBodies.size(); i++)
-		{
-			Body* body = &_SceneBodies[i];
 
-			//Gravity Needs To Be An Impulse 
-			// i = DP , F = dp/dt => dp = F * DT => I = F * dt
-			// F = MGS
-			float mass = 1.0f / body->_InvMass;
-
-			Vec3 impulse_gravity = Vec3(0.0f, -0.005f, 0.0f) * mass * 0.01f;
-			body->AddImpulseLinear(impulse_gravity);
-		}
-
-		for (int i = 0; i < _SceneBodies.size(); i++)
-		{
-			for (int j = i + 1; j < _SceneBodies.size(); j++)
-			{
-			
-				Body* bodyA = &_SceneBodies[i];
-				Body* bodyB = &_SceneBodies[j];
-
-				//Skip If Inf Mass
-				if (0.0f == bodyA->_InvMass && 0.0f == bodyB->_InvMass)
-				{
-					continue;
-				}
-				Contact contact;
-				if (Intersect(bodyA, bodyB , contact))
-				{
-					ResolveContacts(contact);
-				}
-			
-			}
-		}
-		for (int l = 0; l < _SceneBodies.size(); l++)
-		{
-			Body* body = &_SceneBodies[l];
-			body->Update(0.01f , _SceneCamera);
-			//Keep This Hear - Object Wont move if Contact Is True, Since Velocity is nullified
-
-
-		}
-	}
+	void Update(float delta_time) override;
 	bool RaySphere(Vec3 ray_start , Vec3 & ray_direction , Vec3 sphere_centre , float sphere_radius , float & t1, float & t2)
 	{
 		Vec3 m = sphere_centre - ray_start;
@@ -200,7 +147,7 @@ public:
 		ab.Normalize();
 
 		pt_On_A = newPosA + ab * sphere_a->_Radius;
-		pt_On_B = newPosB + ab * sphere_b->_Radius;
+		pt_On_B = newPosB - ab * sphere_b->_Radius;
 
 		return true;
 	}
@@ -210,8 +157,8 @@ public:
 		Body* A = contact._BodyA;
 		Body* B = contact._BodyB;
 
-		Vec3 ptOnA = contact.ptOnA_WorldSpace;
-		Vec3 ptOnB = contact.ptOnB_WorldSpace;
+		Vec3 ptOnA = A->BodySpaceToWorldSpace(contact.ptOnA_LocalSpace);
+		Vec3 ptOnB = B->BodySpaceToWorldSpace(contact.ptOnB_LocalSpace);
 
 
 		const float elasicityA = A->_Elasicity;
@@ -225,7 +172,7 @@ public:
 		Mat3 invWorldInertiaB = B->GetInverseInertiaTensorWorldSpace();
 
 		//Calculate Collision Impulse
-		const Vec3& n = contact.Normal;
+		const Vec3 n = contact.Normal;
 
 		Vec3 ra = ptOnA - A->GetCenterOfMassWorldSpace();
 		Vec3 rB = ptOnB - B->GetCenterOfMassWorldSpace();
@@ -274,18 +221,22 @@ public:
 		B->ApplyImpulse(ptOnB, impulseFricion * 1.0f);
 
 
-		const float tA = A->_InvMass / (A->_InvMass + B->_InvMass);
-		const float tB = B->_InvMass / (A->_InvMass + B->_InvMass);
+		if (0.0f == contact._TimeOfImpact)
+		{
+			const Vec3 ds = ptOnB - ptOnA;
 
-		const Vec3 ds = ptOnB - ptOnA;
+			const float tA = A->_InvMass / (A->_InvMass + B->_InvMass);
+			const float tB = B->_InvMass / (A->_InvMass + B->_InvMass);
+
+			A->_Position += ds * tA;
+			B->_Position -= ds * tB;
+
+			A->_Shape->_Object->_ObjectTransformation.SetTranslation(XMFLOAT3(A->_Position.x, A->_Position.y, A->_Position.z));
+			B->_Shape->_Object->_ObjectTransformation.SetTranslation(XMFLOAT3(B->_Position.x, B->_Position.y, B->_Position.z));
+		}
 
 
-		A->_Position += ds * tA;
-		B->_Position -= ds * tB;
 
-
-		A->_Shape->_Object->_ObjectTransformation.SetTranslation(XMFLOAT3(A->_Position.x, A->_Position.y, A->_Position.z));
-		B->_Shape->_Object->_ObjectTransformation.SetTranslation(XMFLOAT3(B->_Position.x, B->_Position.y, B->_Position.z));
 
 	}
 	void DrawUI()
@@ -311,22 +262,32 @@ public:
 	{
 		if (GetAsyncKeyState('W')) {
 			Body* body = &_SceneBodies[0];
-			body->AddImpulseLinear(Vec3(0.0f, 0.001f, 0.0f));
+			body->AddImpulseLinear(Vec3(0.0f, 1.0f, 0.0f));
 
 		}
 		if (GetAsyncKeyState('A')) {
 			Body* body = &_SceneBodies[0];
-			body->AddImpulseLinear(Vec3(-0.001f, 0.0f, 0.0f));
+			body->AddImpulseLinear(Vec3(-1.0f, 0.0f, 0.0f));
+
+		}
+		if (GetAsyncKeyState('E')) {
+			Body* body = &_SceneBodies[0];
+			body->AddImpulseLinear(Vec3(0.0f, 0.0f, 1.0f));
+
+		}
+		if (GetAsyncKeyState('R')) {
+			Body* body = &_SceneBodies[0];
+			body->AddImpulseLinear(Vec3(0.0f, 0.0f, -1.0f));
 
 		}
 		if (GetAsyncKeyState('D')) {
 			Body* body = &_SceneBodies[0];
-			body->AddImpulseLinear(Vec3(0.0001f, 0.0f, 0.0f));
+			body->AddImpulseLinear(Vec3(1.0f, 0.0f, 0.0f));
 
 		}
 		if (GetAsyncKeyState('S')) {
 			Body* body = &_SceneBodies[0];
-			body->AddImpulseLinear(Vec3(0.0f, -0.01f, 0.0f));
+			body->AddImpulseLinear(Vec3(0.0f, -1.0f, 0.0f));
 
 		}
 		if (GetAsyncKeyState('X')) {
@@ -339,8 +300,13 @@ public:
 			body->AddImpulseAngular(Vec3(0.0f, -0.001f, 0.0f));
 
 		}
+		if (GetAsyncKeyState('C')) {
+			Body* body = &_SceneBodies[0];
+			body->_Position = Vec3(0.0f, 0.001f, 0.0f);
+
+		}
 	}
-	bool Intersect( Body* A,  Body* B , Contact & contact)
+	bool Intersect( Body* A,  Body* B, float dt , Contact & contact)
 	{
 		contact._BodyA = A;
 		contact._BodyB = B;
@@ -348,8 +314,8 @@ public:
 		if (A->_Shape->GetType() == Shape::SHAPE_SPHERE && B->_Shape->GetType() == Shape::SHAPE_SPHERE)
 		{
 
-			 ShapeSphere* a_sphere = ( ShapeSphere*)A->_Shape;
-			 ShapeSphere* b_sphere = ( ShapeSphere*)B->_Shape;
+		 ShapeSphere* a_sphere = ( ShapeSphere*)A->_Shape;
+		 ShapeSphere* b_sphere = ( ShapeSphere*)B->_Shape;
 
 			Vec3 pos_a = A->_Position;
 			Vec3 pos_b = B->_Position;
@@ -357,21 +323,21 @@ public:
 			Vec3 vel_a = A->_LinearVelocity;
 			Vec3 vel_b = B->_LinearVelocity;
 
-			if (SphereSphereDynamic(a_sphere, b_sphere, pos_a, pos_b, vel_a, vel_b, 0.01, contact.ptOnA_WorldSpace, contact.ptOnB_WorldSpace, contact._TimeOfImpact))
+			if (SphereSphereDynamic(a_sphere, b_sphere, pos_a, pos_b, vel_a, vel_b, dt, contact.ptOnA_WorldSpace, contact.ptOnB_WorldSpace, contact._TimeOfImpact))
 			{
 			
-				A->Update(contact._TimeOfImpact, _SceneCamera);
-				B->Update(contact._TimeOfImpact , _SceneCamera);
+				A->Update(contact._TimeOfImpact);
+				B->Update(contact._TimeOfImpact );
 
-				contact.ptOnA_WorldSpace = A->WorldSpaceToBodySpace(contact.ptOnA_WorldSpace);
-				contact.ptOnB_WorldSpace = B->WorldSpaceToBodySpace(contact.ptOnB_WorldSpace);
+				contact.ptOnA_LocalSpace = A->WorldSpaceToBodySpace(contact.ptOnA_WorldSpace);
+				contact.ptOnB_LocalSpace = B->WorldSpaceToBodySpace(contact.ptOnB_WorldSpace);
 
 				contact.Normal = A->_Position - B->_Position;
 				contact.Normal.Normalize();
 
 				//Unqind Time Step
-				A->Update(-contact._TimeOfImpact, _SceneCamera);
-				B->Update(-contact._TimeOfImpact, _SceneCamera);
+				A->Update(-contact._TimeOfImpact );
+				B->Update(-contact._TimeOfImpact);
 
 
 				Vec3 ab = B->_Position - A->_Position;
@@ -385,13 +351,7 @@ public:
 		}
 		return false;
 	}
-	int CompareContacts(void* p1, void* p2)
-	{
-		Contact a = (Contact*)p1;
-		Contact b = (Contact*)p1;
-
-	}
-
+	
 private:
 	Camera* _SceneCamera;
 

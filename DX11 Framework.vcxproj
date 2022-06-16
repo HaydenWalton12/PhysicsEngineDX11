@@ -383,6 +383,7 @@
     <ClCompile Include="IMGui\imgui_widgets.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
+    <ClCompile Include="Scene0.cpp" />
     <ClCompile Include="TextureComponent.cpp" />
   </ItemGroup>
   <ItemGroup>

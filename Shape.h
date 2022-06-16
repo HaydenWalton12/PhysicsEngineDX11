@@ -51,7 +51,7 @@ public:
 		_CentreOfMass.Zero();
 
 		//Sets Up THe Object Bound To THis Shape , Replacing having to individualy define a shape in a scene class to the same length as this
-		_Object = new Object(render, L"Floor.dds", tex, "cube.Obj");
+		_Object = new Object(render, L"Floor.dds", tex, "sphere.Obj");
 		_Object->SetSurface(surface.Ambient, surface.Diffuse, surface.Specular, surface.SpecularPower);
 
 		_Object->SetVertexShader(L"DX11 Framework.fx");
@@ -155,7 +155,7 @@ public:
 		}
 	}
 
-	void Update(float dt_sec , Camera* scene_camera)
+	void Update(float dt_sec)
 	{
 		Vec3 position_cm = GetCenterOfMassWorldSpace();
 		Vec3 cm_to_pos = _Position - position_cm;
@@ -172,11 +172,8 @@ public:
 		_Orientation.Normalize();
 
 		_Position = position_cm + dq.RotatePoint(cm_to_pos);
-		_Position += _LinearVelocity * 0.01f;
-		_Shape->_Object->_ObjectTransformation.SetTranslation(XMFLOAT3(_Position.x,_Position.y, _Position.z));
-		_Shape->_Object->_ObjectTransformation.SetRotation(XMFLOAT3(_AngularVelocity.x , _AngularVelocity.y , _AngularVelocity.z));
-		_Shape->_Object->_ObjectTransformation.UpdateObject();
-		_Shape->_Object->Draw(scene_camera);
+		_Position += _LinearVelocity * dt_sec;
+
 	}
 
 	//Applying The World Posstion  and Orietnation to the centre of mass will update the position relative to world space.

@@ -209,6 +209,9 @@
     <ClCompile Include="TextureComponent.cpp">
       <Filter>SourceFiles\Components</Filter>
     </ClCompile>
+    <ClCompile Include="Scene0.cpp">
+      <Filter>SourceFiles\Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
