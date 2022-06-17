@@ -1,5 +1,5 @@
 #include "Scene0.h"
-#include "BroadNarrowPhase.h"
+#include "BroadPhase.h"
 
 int CompareContacts(const void* p1, const void* p2) {
 	const Contact a = *(const Contact*)p1;

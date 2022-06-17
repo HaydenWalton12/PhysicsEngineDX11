@@ -374,6 +374,7 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Body.cpp" />
     <ClCompile Include="Bounds.cpp" />
+    <ClCompile Include="BroadPhase.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DirectX.cpp" />
@@ -399,7 +400,7 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="Body.h" />
     <ClInclude Include="Bounds.h" />
-    <ClInclude Include="BroadNarrowPhase.h" />
+    <ClInclude Include="BroadPhase.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="Collision.h" />

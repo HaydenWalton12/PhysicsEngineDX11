@@ -179,7 +179,7 @@
     <ClInclude Include="Bounds.h">
       <Filter>HeaderFiles\Physics</Filter>
     </ClInclude>
-    <ClInclude Include="BroadNarrowPhase.h">
+    <ClInclude Include="BroadPhase.h">
       <Filter>HeaderFiles\Physics</Filter>
     </ClInclude>
     <ClInclude Include="Shape.h">
@@ -240,6 +240,9 @@
       <Filter>SourceFiles\Physics\Shape</Filter>
     </ClCompile>
     <ClCompile Include="Body.cpp">
+      <Filter>SourceFiles\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="BroadPhase.cpp">
       <Filter>SourceFiles\Physics</Filter>
     </ClCompile>
   </ItemGroup>
