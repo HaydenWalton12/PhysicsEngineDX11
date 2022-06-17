@@ -57,6 +57,12 @@
     <Filter Include="SourceFiles\Physics">
       <UniqueIdentifier>{7e01251f-783d-4f59-b30e-2b4152974f60}</UniqueIdentifier>
     </Filter>
+    <Filter Include="HeaderFiles\Physics\Shapes">
+      <UniqueIdentifier>{95811235-1aca-4942-8554-ad709dc4df25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SourceFiles\Physics\Shape">
+      <UniqueIdentifier>{7a207218-1177-4b71-87d9-e7ccca48d54a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h">
@@ -164,9 +170,6 @@
     <ClInclude Include="Quanternion.h">
       <Filter>HeaderFiles\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Shape.h">
-      <Filter>HeaderFiles\Physics</Filter>
-    </ClInclude>
     <ClInclude Include="Lighting.h">
       <Filter>HeaderFiles\Structures</Filter>
     </ClInclude>
@@ -177,6 +180,15 @@
       <Filter>HeaderFiles\Physics</Filter>
     </ClInclude>
     <ClInclude Include="BroadNarrowPhase.h">
+      <Filter>HeaderFiles\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Shape.h">
+      <Filter>HeaderFiles\Physics\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="ShapeSphere.h">
+      <Filter>HeaderFiles\Physics\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="Body.h">
       <Filter>HeaderFiles\Physics</Filter>
     </ClInclude>
   </ItemGroup>
@@ -222,6 +234,12 @@
       <Filter>SourceFiles\Scene</Filter>
     </ClCompile>
     <ClCompile Include="Bounds.cpp">
+      <Filter>SourceFiles\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="ShapeSphere.cpp">
+      <Filter>SourceFiles\Physics\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="Body.cpp">
       <Filter>SourceFiles\Physics</Filter>
     </ClCompile>
   </ItemGroup>

@@ -372,6 +372,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Body.cpp" />
     <ClCompile Include="Bounds.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
@@ -385,6 +386,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="Scene0.cpp" />
+    <ClCompile Include="ShapeSphere.cpp" />
     <ClCompile Include="TextureComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -395,6 +397,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="Body.h" />
     <ClInclude Include="Bounds.h" />
     <ClInclude Include="BroadNarrowPhase.h" />
     <ClInclude Include="Camera.h" />
@@ -426,6 +429,7 @@
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="ShaderCompiler.h" />
     <ClInclude Include="Shape.h" />
+    <ClInclude Include="ShapeSphere.h" />
     <ClInclude Include="StaticCamera.h" />
     <ClInclude Include="Structures.h" />
     <ClInclude Include="Surface.h" />

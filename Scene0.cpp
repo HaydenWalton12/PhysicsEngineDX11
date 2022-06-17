@@ -90,16 +90,14 @@ void Scene0::Update(float delta_time)
 		for (int j = 0; j < _SceneBodies.size(); j++)
 		{
 			_SceneBodies[j].Update(time_remaining );
+
+			_SceneBodies[j]._Shape->_Object->_ObjectTransformation.SetTranslation(XMFLOAT3(_SceneBodies[j]._Position.x, _SceneBodies[j]._Position.y, _SceneBodies[j]._Position.z));
+			_SceneBodies[j]._Shape->_Object->_ObjectTransformation.SetRotation(XMFLOAT3(_SceneBodies[j]._AngularVelocity.x, _SceneBodies[j]._AngularVelocity.y, _SceneBodies[j]._AngularVelocity.z));
+			_SceneBodies[j]._Shape->_Object->_ObjectTransformation.UpdateObject();
+			_SceneBodies[j]._Shape->_Object->Draw(_SceneCamera);
 		}
 
 	}
 
-	for (int j = 0; j < _SceneBodies.size(); j++)
-	{
-		
-		_SceneBodies[j]._Shape->_Object->_ObjectTransformation.SetTranslation(XMFLOAT3(_SceneBodies[j]._Position.x, _SceneBodies[j]._Position.y, _SceneBodies[j]._Position.z));
-		_SceneBodies[j]._Shape->_Object->_ObjectTransformation.SetRotation(XMFLOAT3(_SceneBodies[j]._AngularVelocity.x, _SceneBodies[j]._AngularVelocity.y, _SceneBodies[j]._AngularVelocity.z));
-		_SceneBodies[j]._Shape->_Object->_ObjectTransformation.UpdateObject();
-		_SceneBodies[j]._Shape->_Object->Draw(_SceneCamera);
-	}
+
 }

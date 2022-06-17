@@ -1,6 +1,7 @@
 #pragma once
 #include "SceneManager.h"
 #include "Shape.h"
+#include "ShapeSphere.h"
 #include <string>
 
 #include "Collision.h"
@@ -36,52 +37,25 @@ public:
 
 
 		Body body;
+				body._Position = Vec3(0.0f, 10.0f, 0.0f);
+				body._Orientation = Quat(0, 0, 0, 1);
+				body._LinearVelocity.Zero();
+				body._InvMass = 1.0f;
+				body._Elasicity = 0.5f;
+				body._Friction = 0.5f;
+				body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
+					XMFLOAT3(0.0f, 10.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));;
+				_SceneBodies.push_back(body);
 
-		body._Position = Vec3(-10.0f, 3.0f, 0.0f);
-		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
-		body._LinearVelocity = Vec3(0.0f, 0.0f, 0.0f);
-		body._InvMass = 1.0f;
-		body._Elasicity = 0.5f;
-		body._Friction = 0.5f;
-		body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
-			XMFLOAT3(-5.0f, 3.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
-
-		_SceneBodies.push_back(body);
-
-
-		body._Position = Vec3(0.0f, 3.0f, 0.0f);
-		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
-		body._LinearVelocity = Vec3(0.0f, 0.0f, 0.0f);
-		body._InvMass = 1.0f;
-		body._Elasicity = 0.0f;
-		body._Friction = 0.5f;
-		body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
-			XMFLOAT3(0.0f, 3.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
-
-		_SceneBodies.push_back(body);
-
-
-		body._Position = Vec3(0.0f, 15.0f, 0.0f);
-		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
-		body._LinearVelocity = Vec3(0.0f, 0.0f, 0.0f);
-		body._InvMass = 1.0f;
-		body._Elasicity = 0.0f;
-		body._Friction = 0.5f;
-		body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
-			XMFLOAT3(0.0f, 3.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
-
-		_SceneBodies.push_back(body);
-
-		body._Position = Vec3(0.0f, -10.0f, 0.0f);
-		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
-		body._LinearVelocity = Vec3(0.0f, 0.0f, 0.0f);
-		body._InvMass = 0.0f;
-		body._Elasicity = 0.0f;
-		body._Friction = 0.5f;
-		body._Shape = new ShapeSphere(10.0f, surface, _pRenderCommand, _Tex,
-			XMFLOAT3(0.0f, -10.0f, 0.0f), XMFLOAT3(10.0f, 10.0f, 10.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
-
-		_SceneBodies.push_back(body);
+				body._Position = Vec3(0.0f, 15.0f, 0.0f);
+				body._Orientation = Quat(0, 0, 0, 1);
+				body._LinearVelocity.Zero();
+				body._InvMass = 1.0f;
+				body._Elasicity = 0.5f;
+				body._Friction = 0.5f;
+				body._Shape = new ShapeSphere(1.0f, surface, _pRenderCommand, _Tex,
+					XMFLOAT3(0.0f, 15.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));;
+				_SceneBodies.push_back(body);
 	}
 
 	void Update(float delta_time) override;

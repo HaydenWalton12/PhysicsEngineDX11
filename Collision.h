@@ -1,6 +1,7 @@
 #pragma once
 #include "Shape.h"
 
+#include "Body.h"
 
 //Struct Used For Interpentration , utilising points of contacts between two bodies 
 struct Contact
