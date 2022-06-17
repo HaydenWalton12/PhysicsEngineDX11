@@ -2,6 +2,7 @@
 #include "Object.h"
 #include "Vector.h"
 #include "Quanternion.h"
+#include "Bounds.h"
 class Shape
 {
 public:
@@ -11,12 +12,14 @@ public:
 		SHAPE_CUBE,
 		SHAPE_PLANE,
 	};
-	virtual ShapeType GetType()
-	{
-		return type;
-	}
+
+	virtual ShapeType GetType() const = 0;
 
 	ShapeType type;
+
+
+	virtual Bounds GetBounds(const Vec3& pos, const Quat& orient)  const = 0;
+	virtual Bounds GetBounds() const = 0;
 
 	virtual Vec3 GetCentreOfMass() const { return _CentreOfMass; }
 
@@ -41,7 +44,7 @@ public:
 	ShapeType _ShapeType;
 
 	float _Radius;
-	ShapeType GetType() override
+	ShapeType GetType() const override
 	{
 		return _ShapeType;
 	}
@@ -76,6 +79,19 @@ public:
 		Tensor.rows[2][2] = 2.0f * _Radius * _Radius / 5.0f;
 		return Tensor;
 	}
+
+	Bounds GetBounds(const Vec3& pos, const Quat& orient)  const override
+	{
+		Bounds tmp;
+		tmp.mins = Vec3(-_Radius) + pos;
+		tmp.maxs = Vec3(_Radius) + pos;
+		return tmp;
+	}
+	Bounds GetBounds() const override
+	{
+
+	}
+
 };
 
 class Body

@@ -21,20 +21,19 @@ void Scene0::Update(float delta_time)
 	DrawUI();
 	_SceneCamera->UpdateCamera();
 
-
-
 	//Gravity
 	for (int i = 0; i < _SceneBodies.size(); i++)
 	{
+
 		Body* body = &_SceneBodies[i];
 		float mass = 1.0f / body->_InvMass;
 		Vec3 impulse_gravity = Vec3(0.0f, -10.0f, 0.0f) * mass * delta_time;
 		body->AddImpulseLinear(impulse_gravity);
+	
 	}
 
 	int num_contact = 0;
 	const int max_contacts = _SceneBodies.size() * _SceneBodies.size();
-
 	Contact* contacts = (Contact*)alloca(sizeof(Contact) * max_contacts);
 
 	for (int i = 0; i < _SceneBodies.size(); i++)

@@ -54,6 +54,9 @@
     <Filter Include="SourceFiles\Components">
       <UniqueIdentifier>{fc952b14-7095-4ce4-b9b9-808aaa28a00d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SourceFiles\Physics">
+      <UniqueIdentifier>{7e01251f-783d-4f59-b30e-2b4152974f60}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h">
@@ -170,6 +173,9 @@
     <ClInclude Include="Collision.h">
       <Filter>HeaderFiles\Physics</Filter>
     </ClInclude>
+    <ClInclude Include="Bounds.h">
+      <Filter>HeaderFiles\Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -211,6 +217,9 @@
     </ClCompile>
     <ClCompile Include="Scene0.cpp">
       <Filter>SourceFiles\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Bounds.cpp">
+      <Filter>SourceFiles\Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
