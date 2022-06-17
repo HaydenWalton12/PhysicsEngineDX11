@@ -396,6 +396,7 @@
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Bounds.h" />
+    <ClInclude Include="BroadNarrowPhase.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="Collision.h" />

@@ -1,5 +1,5 @@
 #include "Scene0.h"
-
+#include "BroadNarrowPhase.h"
 
 int CompareContacts(const void* p1, const void* p2) {
 	const Contact a = *(const Contact*)p1;
@@ -32,61 +32,58 @@ void Scene0::Update(float delta_time)
 	
 	}
 
+
+	//BroadPhase
+	std::vector<CollisionPair> collision_pairs;
+	BroadPhase(_SceneBodies.data(), (int)_SceneBodies.size(), collision_pairs, delta_time);
+
+	//NarrowPhase - Actual Collision Detection
 	int num_contact = 0;
 	const int max_contacts = _SceneBodies.size() * _SceneBodies.size();
 	Contact* contacts = (Contact*)alloca(sizeof(Contact) * max_contacts);
 
-	for (int i = 0; i < _SceneBodies.size(); i++)
+	for (int i = 0; i < collision_pairs.size(); i++)
 	{
-		for (int j = i + 1; j < _SceneBodies.size(); j++)
-		{
-			Body* bodyA = &_SceneBodies[i];
-			Body* bodyB = &_SceneBodies[j];
+		const CollisionPair& pair = collision_pairs[i];
+		Body* bodyA = &_SceneBodies[pair.a];
+		Body* bodyB = &_SceneBodies[pair.b];
 
-			//Skip If Inf Mass
-			if (0.0f == bodyA->_InvMass && 0.0f == bodyB->_InvMass)
-			{
-				continue;
-			}
-			Contact contact;
-			if (Intersect(bodyA, bodyB, delta_time, contact))
-			{
-				contacts[num_contact] = contact;
-				num_contact++;
-			}
+		if (0.0f == bodyA->_InvMass && 0.0f == bodyB->_InvMass)
+		{
+			continue;
+		}
+
+		Contact contact;
+		if (Intersect(bodyA, bodyB ,delta_time , contact))
+		{
+			contacts[num_contact] = contact;
+			num_contact++;
 		}
 	}
+	//Sort Contacts , times of impacts first to last
 	if (num_contact > 1)
 	{
 		qsort(contacts, num_contact, sizeof(Contact), CompareContacts);
 	}
 
+
+	//Apply ballistic impuslses
 	float accumTime = 0.0f;
 	for (int i = 0; i < num_contact; i++)
 	{
 		Contact& contact = contacts[i];
 		const float dt = contact._TimeOfImpact - accumTime;
-
-		Body* bodyA = contact._BodyA;
-		Body* bodyB = contact._BodyB;
-
-		//Skip If Inf Mass
-		if (0.0f == bodyA->_InvMass && 0.0f == bodyB->_InvMass)
-		{
-			continue;
-		}
+		//position update
 		for (int j = 0; j < _SceneBodies.size(); j++)
 		{
 			_SceneBodies[j].Update(delta_time);
-	
-		}
 
+		}
 		ResolveContacts(contact);
 		accumTime += dt;
-
-
 	}
 
+	//Update Positions for rest of frames time
 	const float time_remaining = delta_time - accumTime;
 	if (time_remaining > 0.0f)
 	{

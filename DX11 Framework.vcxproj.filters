@@ -176,6 +176,9 @@
     <ClInclude Include="Bounds.h">
       <Filter>HeaderFiles\Physics</Filter>
     </ClInclude>
+    <ClInclude Include="BroadNarrowPhase.h">
+      <Filter>HeaderFiles\Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />

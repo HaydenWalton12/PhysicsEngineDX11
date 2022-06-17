@@ -89,7 +89,10 @@ public:
 	}
 	Bounds GetBounds() const override
 	{
-
+		Bounds tmp;
+		tmp.mins = Vec3(-_Radius);
+		tmp.maxs = Vec3(_Radius);
+		return tmp;
 	}
 
 };
