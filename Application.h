@@ -1,154 +1,107 @@
 #pragma once
-
-#include <windows.h>
-#include <d3d11_1.h>
-#include <d3dcompiler.h>
-#include <directxmath.h>
-#include <directxcolors.h>
-#include "DDSTextureLoader.h"
-#include "resource.h"
-#include "Camera.h"
-#include "Structures.h"
+#include "ConstantStructure.h"
+#include "Mesh.h"
 #include "OBJLoader.h"
 
-#include <vector>
-/*
-//#include <SpriteFont.h>
-#include "CommonStates.h"
-//#include "DDSTextureLoader.h"
-#include "Effects.h"
-#include "GeometricPrimitive.h"
-#include "Model.h"
-#include "PrimitiveBatch.h"
-#include "ScreenGrab.h"
-#include "SpriteBatch.h"
-#include "SpriteFont.h"
-#include "VertexTypes.h"
-*/
-#include "GameObject.h"
+#include <dinput.h>
 
+#pragma comment (lib, "dinput8.lib")
+#pragma comment (lib, "dxguid.lib")
+
+//Access to core DX functions 
+
+#include "ImGuiManager.h"
+#include "SceneManager.h"
+
+
+#include <d3d11_1.h>
+
+//Allows us to compile DX11 Code
+#include <d3dcompiler.h>
+//Math Library
+#include <directxmath.h>
+#include <directxcolors.h>
+//Libraries used to create application 
+
+#include "DirectX.h"
+#include "Render.h"
+#include "TextureComponent.h"
+#include "Scene0.h"
+
+#include <vector>
+
+#include "DDSTextureLoader.h"
+#include "PixelShader.h"
+#include "VertexShader.h"
+
+#include "StaticCamera.h"
+
+
+//Allows us to easily call reference upon our DX naming conventions
 using namespace DirectX;
 
-//struct SimpleVertex
-//{
-//    XMFLOAT3 PosL;
-//	XMFLOAT3 NormL;
-//	XMFLOAT2 Tex;
-//};
+//XMFLOAT3 - Describes 3DVector , Consisting of Three Points (x,y ,z)
+//XMFLOAT4 - Describes 4DVector , Consisting of Four Points (x)
+//XMFLOAT4X4  - Structure that creates 4*4 Floating Point Matrix - Can be used to store XMMATRIX DATA
+//and relevant matrix data within DX11
 
-
-struct SurfaceInfo
-{
-	XMFLOAT4 AmbientMtrl;
-	XMFLOAT4 DiffuseMtrl;
-	XMFLOAT4 SpecularMtrl;
-};
-
-struct Light
-{
-	XMFLOAT4 AmbientLight;
-	XMFLOAT4 DiffuseLight;
-	XMFLOAT4 SpecularLight;
-
-	float SpecularPower;
-	XMFLOAT3 LightVecW;
-};
-
-struct ConstantBuffer
-{
-	XMMATRIX World;
-	XMMATRIX View;
-	XMMATRIX Projection;
-	
-	SurfaceInfo surface;
-
-	Light light;
-
-	XMFLOAT3 EyePosW;
-	float HasTexture;
-};
 
 class Application
 {
 private:
-	HINSTANCE               _hInst;
-	HWND                    _hWnd;
-	D3D_DRIVER_TYPE         _driverType;
-	D3D_FEATURE_LEVEL       _featureLevel;
-	ID3D11Device*           _pd3dDevice;
-	ID3D11DeviceContext*    _pImmediateContext;
-	IDXGISwapChain*         _pSwapChain;
-	ID3D11RenderTargetView* _pRenderTargetView;
-	ID3D11VertexShader*     _pVertexShader;
-	ID3D11PixelShader*      _pPixelShader;
-	ID3D11InputLayout*      _pVertexLayout;
 
-	ID3D11Buffer*           _pVertexBuffer;
-	ID3D11Buffer*           _pIndexBuffer;
+	DX* _pDX11;
 
-	ID3D11Buffer*           _pPlaneVertexBuffer;
-	ID3D11Buffer*           _pPlaneIndexBuffer;
+	RenderCommands* _pRenderCommands;
+	TextureComponent* _Tex;
+	SceneManager* _pSceneManager;
 
-	ID3D11Buffer*           _pConstantBuffer;
+	PixelShader* _pPixelShader;
+	VertexShader* _pVertexShader;
 
-	ID3D11DepthStencilView* _depthStencilView = nullptr;
-	ID3D11Texture2D* _depthStencilBuffer = nullptr;
+	ID3D11PixelShader* _PS;
+	ID3D11VertexShader* _VS;
 
-	ID3D11ShaderResourceView * _pTextureRV = nullptr;
+	ImGuiManager* _pGUIManager;
 
-	ID3D11ShaderResourceView * _pGroundTextureRV = nullptr;
+	//Stores all of our levels we use
+	//Using smart pointers here as they automatically deallocate themselves when needed
 
-	ID3D11ShaderResourceView* _pHerculesTextureRV = nullptr;
+	Scene0* _pScene0;
 
-	ID3D11SamplerState * _pSamplerLinear = nullptr;
 
-	MeshData objMeshData;
+	StaticDefaultCamera* _StaticDefaultCamera;
 
-	Light basicLight;
-
-	vector<GameObject *> _gameObjects;
-
-	Camera * _camera = nullptr;
-	float _cameraOrbitRadius = 7.0f;
-	float _cameraOrbitRadiusMin = 2.0f;
-	float _cameraOrbitRadiusMax = 50.0f;
-	float _cameraOrbitAngleXZ = -90.0f;
-	float _cameraSpeed = 2.0f;
-
-	UINT _WindowHeight;
-	UINT _WindowWidth;
-
-	// Render dimensions - Change here to alter screen resolution
-	UINT _renderHeight = 1080;
-	UINT _renderWidth = 1920;
-
-	ID3D11DepthStencilState* DSLessEqual;
-	ID3D11RasterizerState* RSCullNone;
-
-	ID3D11RasterizerState* CCWcullMode;
-	ID3D11RasterizerState* CWcullMode;
-
-private:
-	HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
-	HRESULT InitDevice();
-	void Cleanup();
-	HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
-	HRESULT InitShadersAndInputLayout();
-	HRESULT InitVertexBuffer();
-	HRESULT InitIndexBuffer();
-
-	void moveForward(int objectNumber);
-	void moveBackward(int objectNumber);
+	DWORD dwTimeStart = 0;
+	std::vector<Camera*> _CameraObjects;
 
 public:
+
+	HINSTANCE  _hInst;								//Used to specify instance which the class is registred					
+	HWND                    _hWnd;								//Used to handle a window , part of Win32 API , crates window using window instance above.
+
+	IDirectInputDevice8* DIKeyBoard;
+	IDirectInputDevice8* DIMouse;
+
+	DIMOUSESTATE MouseLastState;
+	LPDIRECTINPUT8 DirectInput;
+
+	UINT _WindowHeight;											//Define window height
+	UINT _WindowWidth;											//Define window width
+
 	Application();
 	~Application();
 
+
 	HRESULT Initialise(HINSTANCE hInstance, int nCmdShow);
 
-	bool HandleKeyboard(MSG msg);
+	SceneManager* _pCurrentScene;
 
-	void Update();
-	void Draw();
+	void Input();
+	void Cleanup();
+	void RenderFrame();
+	void SwitchScene(SceneManager* scene);
+	HRESULT InitialiseWindow(HINSTANCE hInstance, int nCmdShow);
+
 };
 

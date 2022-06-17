@@ -10,7 +10,8 @@ using namespace DirectX;
 class Camera
 {
 private:
-	XMFLOAT3 _eye; 
+
+	XMFLOAT3 _eye;
 	XMFLOAT3 _at;
 	XMFLOAT3 _up;
 

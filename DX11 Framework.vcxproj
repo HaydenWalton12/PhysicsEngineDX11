@@ -372,11 +372,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Body.cpp" />
+    <ClCompile Include="Bounds.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="DirectX.cpp" />
+    <ClCompile Include="IMGui\imgui.cpp" />
+    <ClCompile Include="IMGui\imgui_draw.cpp" />
+    <ClCompile Include="IMGui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="IMGui\imgui_impl_win32.cpp" />
+    <ClCompile Include="IMGui\imgui_tables.cpp" />
+    <ClCompile Include="IMGui\imgui_widgets.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
+    <ClCompile Include="Scene0.cpp" />
+    <ClCompile Include="ShapeSphere.cpp" />
+    <ClCompile Include="TextureComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="DX11 Framework.fx">
@@ -386,20 +397,53 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="Body.h" />
+    <ClInclude Include="Bounds.h" />
+    <ClInclude Include="BroadNarrowPhase.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CameraComponent.h" />
+    <ClInclude Include="Collision.h" />
+    <ClInclude Include="ConstantStructure.h" />
     <ClInclude Include="DDSTextureLoader.h" />
-    <ClInclude Include="GameObject.h" />
+    <ClInclude Include="DirectX.h" />
+    <ClInclude Include="IMGuiManager.h" />
+    <ClInclude Include="IMGui\imconfig.h" />
+    <ClInclude Include="IMGui\imgui.h" />
+    <ClInclude Include="IMGui\imgui_impl_dx11.h" />
+    <ClInclude Include="IMGui\imgui_impl_win32.h" />
+    <ClInclude Include="IMGui\imgui_internal.h" />
+    <ClInclude Include="IMGui\imstb_rectpack.h" />
+    <ClInclude Include="IMGui\imstb_textedit.h" />
+    <ClInclude Include="IMGui\imstb_truetype.h" />
+    <ClInclude Include="Lighting.h" />
+    <ClInclude Include="Materials.h" />
+    <ClInclude Include="Matrix.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Object.h" />
     <ClInclude Include="OBJLoader.h" />
+    <ClInclude Include="PixelShader.h" />
+    <ClInclude Include="Quanternion.h" />
+    <ClInclude Include="Render.h" />
     <CLInclude Include="resource.h" />
+    <ClInclude Include="Scene0.h" />
+    <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="ShaderCompiler.h" />
+    <ClInclude Include="Shape.h" />
+    <ClInclude Include="ShapeSphere.h" />
+    <ClInclude Include="StaticCamera.h" />
     <ClInclude Include="Structures.h" />
+    <ClInclude Include="Surface.h" />
+    <ClInclude Include="TextureComponent.h" />
+    <ClInclude Include="Transformation.h" />
+    <ClInclude Include="Vector.h" />
+    <ClInclude Include="VectorNote.h" />
+    <ClInclude Include="Vertex.h" />
+    <ClInclude Include="VertexShader.h" />
     <ResourceCompile Include="DX11 Framework.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\floor.dds" />
     <Image Include="Resources\stone.dds" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
