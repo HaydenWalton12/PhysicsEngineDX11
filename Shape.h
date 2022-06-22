@@ -3,9 +3,11 @@
 #include "Vector.h"
 #include "Quanternion.h"
 #include "Bounds.h"
+//Parent class hold all reference to the key invidual segments of each class. Each child shape class will hold attritbutes inate to the shape.
 class Shape
 {
 public:
+	//Defined Shape Types
 	enum ShapeType
 	{
 		SHAPE_SPHERE,
@@ -15,6 +17,7 @@ public:
 
 	virtual ShapeType GetType() const = 0;
 
+	//Holds self type inheritated to fill value in child 
 	ShapeType type;
 
 

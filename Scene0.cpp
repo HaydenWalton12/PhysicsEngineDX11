@@ -1,4 +1,4 @@
-#include "Scene0.h"
+﻿#include "Scene0.h"
 #include "BroadPhase.h"
 
 int CompareContacts(const void* p1, const void* p2) {
@@ -16,20 +16,55 @@ int CompareContacts(const void* p1, const void* p2) {
 	return 1;
 }
 
+//The Engine Handles All Forces As Impulses , Essentially Applying These Impulse Forces Whenever Needed, From this , we need to further know what
+//each impusle is and how they affect momentum.
+//Momentum is the product of mass and velocity:
+// Momentum = Mass * Velocity - p = m * v
+// Momentum can be defined as the amount a moving ovject would like to keep moving in a direction , the more momentum an object has, 
+//the more force required to change its momentum , the change in momentum is related to the applied force using :
+// DT - Time Derivative - Expresses the rate of change of a value over time
+// 
+// dp = F * dt
+
+//Impulse is defined by the change of momentum , this makes 
+//sense since depending on the force applied to increase the momentum , this would
+//be considered as an impulse
+
+//Impulses 
+
+
+
 void Scene0::Update(float delta_time) 
 {
 	DrawUI();
 	_SceneCamera->UpdateCamera();
 
-	//Gravity
+	//Gravity - All objects are and will be effected by gravity, a simple method of moving. Positions change when velocity value increases or decreases.
+	//Velocity - Rate of speed of an object in a given direction, direction represented Vector3 , change of position within velocity is 
+	// - dx = v ∗ dt
+	// Distance =  velocity * distance / time
+
+	//Velocity changes with acceleration , equation relating the change of velocity within acceleration is
+	// dv = a ∗ dt
+	// change of velocity = acceleration * distance / time
+
+	//However we set gravity as an impulse , since gravity is a force, forces act on bodies that have mass.
+	//Forces are defined as - F (Force) * Mass * Acceleration
+
+	//When Applying the force of gravity , when applied near the surface of earth , gravity is defined as :
+	// F = Mass * Gravity (F = M * G)
+	// Force = Mass * Gravity 
+
+
+
 	for (int i = 0; i < _SceneBodies.size(); i++)
 	{
-
 		Body* body = &_SceneBodies[i];
 		float mass = 1.0f / body->_InvMass;
-		Vec3 impulse_gravity = Vec3(0.0f, -10.0f, 0.0f) * mass * delta_time;
+
+		//
+		Vec3 impulse_gravity = body->_Gravity * mass * delta_time;
 		body->AddImpulseLinear(impulse_gravity);
-	
 	}
 
 

@@ -1,2 +1,0 @@
-//Vectors are used to define and represent the positions and directions within our virtual spaces, whether thats 2D or 3D potentially 4D spaces too
-//we use the individual Vec2/3/4 claess to represent the different mathematical vectors used for our physics calculations.

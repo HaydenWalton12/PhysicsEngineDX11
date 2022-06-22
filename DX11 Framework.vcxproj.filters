@@ -161,9 +161,6 @@
     <ClInclude Include="Vector.h">
       <Filter>HeaderFiles\Math</Filter>
     </ClInclude>
-    <ClInclude Include="VectorNote.h">
-      <Filter>HeaderFiles\Math</Filter>
-    </ClInclude>
     <ClInclude Include="Matrix.h">
       <Filter>HeaderFiles\Math</Filter>
     </ClInclude>

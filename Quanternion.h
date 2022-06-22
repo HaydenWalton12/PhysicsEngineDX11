@@ -9,6 +9,7 @@
 
 //Quanternions are used to represent orientations for our rigid bodies, this is due to it being easier and efficient to utilise quanternions for
 //this system and preventing gimbits lock.
+
 /*
  ================================
  Quat
@@ -146,8 +147,12 @@ inline float Quat::GetMagnitude() const {
 }
 
 inline Vec3 Quat::RotatePoint(const Vec3& rhs) const {
+	//Convert Vector Values Into quaterion
 	Quat vector(rhs.x, rhs.y, rhs.z, 0.0f);
+
+	//Times Inverse of this quaterion  by the vector quanterion values
 	Quat final = *this * vector * Inverse();
+	//Returns vector values rotating around the point of the Vec3 value passed within , this is done by timising the inverse of the quaterion , giving the opposite value
 	return Vec3(final.x, final.y, final.z);
 }
 

@@ -5,6 +5,11 @@
 #include "Vector.h"
 
 //Matrix Class follows the same principles of the vector class, performs matrix calculations that enable physics calulations
+
+//We utilise linear algebra (coensiding along matrices) to achieve accurate physic simulations , we use the classes below us to define the inertia tensor (essentially
+//a 3x3 matrix )
+
+//Mat2 Defines 2x2 Matrices, Mat3 Defines 3x3 matrices and Mat4 Defines 4x4 matrices
 class Mat2 {
 public:
 	Mat2() {}
