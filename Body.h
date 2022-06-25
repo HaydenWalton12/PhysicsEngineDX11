@@ -10,6 +10,15 @@
 //principles cross over between varying shapes.
 
 
+//The Engine Will Handle All Forces As Direct Impusles Within The Engine 
+// Impulses are defined as an integral of a specfic force acting over a period of time.
+// We apply forces this way since this is contextual to how acting forces are applied in the real world.
+// No Forces (with the exception of gravity) are applied at a constant , all forces are applied
+// contextually upon the environment/conditions evolving around objects with mass.
+
+//Impulse is just the change of momentum
+
+
 
 class Body
 {
@@ -59,6 +68,8 @@ public:
 
 	//These functions will become incremental in physics calculations.
 
+
+	//Getting Mass Is important for the calculation of determining forces and the factors applied from such conditions. With mass we can calculate weight.
 	Vec3 GetCenterOfMassWorldSpace() const;
 	Vec3 GetCenterOfMassModelSpace() const;
 	Vec3 WorldSpaceToBodySpace(const Vec3& world_pt) const;

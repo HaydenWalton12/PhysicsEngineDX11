@@ -35,6 +35,9 @@ Mat3 Body::GetInverseInertiaTensorWorldSpace()
 //the object to interact with  , each will be considered an impusle
 void Body::AddImpulseLinear(const Vec3& impulse)
 {
+	//We apply the given impulse(this force can be anything , will change the momentum) , instead of having a direct momentum value , we directly apply to
+	//the velocity , adding the mass to ensure the object has a mass value(this check is to ensure we apply velocity to object we want to move, since some objects
+	//have the option to not move if InvMass equals 0)
 	if (0.0f == _InvMass){return;}
 	_LinearVelocity += impulse * _InvMass;
 }

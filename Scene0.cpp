@@ -62,8 +62,12 @@ void Scene0::Update(float delta_time)
 		Body* body = &_SceneBodies[i];
 		float mass = 1.0f / body->_InvMass;
 
-		//
+		//Remember , we apply all forces as an impulse
+		// J = dp (change in momentum) , Force = change in momentum / change in time 
+		//We calculate gravity impusle applying the gravity to given mass, this will give us the impusle value , but also give us a weight value (W = M * G)
 		Vec3 impulse_gravity = body->_Gravity * mass * delta_time;
+
+		//Apply the impulse, changes the momentum
 		body->AddImpulseLinear(impulse_gravity);
 	}
 
