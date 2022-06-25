@@ -90,8 +90,13 @@ bool Collision::SphereSphereDynamic(ShapeSphere* sphere_a, ShapeSphere* sphere_b
 	return true;
 }
 
+
+//To Calculate The Distance Between Two Spheres ,We Simply  Check For Overlap Beteen Two Points, these two points will be the positions of the two objects
+//We then compare tween the sum of the two radii , if the distance is less than the two radii , there is intersection.
 bool Collision::Intersect(Body* A, Body* B, float dt, Contact& contact)
 {
+	//Call Reference To Contact , Since We Will Individually store the contact data of both objects, this will be later used to resolve any collisions detected on the individual object.
+	//Hence why we store and refer to this data system within interesection testing.
 	contact._BodyA = A;
 	contact._BodyB = B;
 
