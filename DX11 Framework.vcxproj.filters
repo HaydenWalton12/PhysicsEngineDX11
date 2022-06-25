@@ -242,6 +242,9 @@
     <ClCompile Include="BroadPhase.cpp">
       <Filter>SourceFiles\Physics</Filter>
     </ClCompile>
+    <ClCompile Include="Collision.cpp">
+      <Filter>SourceFiles\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">

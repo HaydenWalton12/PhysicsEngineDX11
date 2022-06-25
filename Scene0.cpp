@@ -1,4 +1,5 @@
 ﻿#include "Scene0.h"
+#include "Collision.h"
 #include "BroadPhase.h"
 
 int CompareContacts(const void* p1, const void* p2) {
@@ -93,7 +94,7 @@ void Scene0::Update(float delta_time)
 		}
 
 		Contact contact;
-		if (Intersect(bodyA, bodyB ,delta_time , contact))
+		if (Collision::Intersect(bodyA, bodyB ,delta_time , contact))
 		{
 			contacts[num_contact] = contact;
 			num_contact++;

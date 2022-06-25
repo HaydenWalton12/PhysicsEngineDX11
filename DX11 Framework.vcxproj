@@ -376,6 +376,7 @@
     <ClCompile Include="Bounds.cpp" />
     <ClCompile Include="BroadPhase.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Collision.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DirectX.cpp" />
     <ClCompile Include="IMGui\imgui.cpp" />
