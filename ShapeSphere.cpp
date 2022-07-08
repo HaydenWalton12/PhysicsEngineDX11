@@ -5,6 +5,12 @@ Shape::ShapeType ShapeSphere::GetType() const
 	return _ShapeType;
 }
 
+Vec3 ShapeSphere::Support(const Vec3& direction, const Vec3& position, const Quat* orientation, const float bias) const
+{
+	//Bias value/term is used to expand or shrink the size the apparent size of an object, used to accurately calculate the contact normal.
+	return (position + direction * (_Radius + bias));
+}
+
 Mat3 ShapeSphere::InertiaTensor()
 {
 	Mat3 Tensor;
