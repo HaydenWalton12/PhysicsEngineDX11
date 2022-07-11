@@ -1,7 +1,7 @@
-#include "ShapeBox.h"
+#include "ShapeConvex.h"
 
 //Takes in the direction and box values,  then further calculates the vertex/point on the shape that is the furthest in that given direction
-Vec3 ShapeBox::Support(const Vec3& direction, const Vec3& position, const Quat* orientation, const float bias) const
+Vec3 ShapeConvex::Support(const Vec3& direction, const Vec3& position, const Quat* orientation, const float bias) const
 {
 	//Max Point Rotate Around Point Plus + Position To Get correct Point Value In WorldSpace
 	//Used To find the furthest point in the given direction
@@ -10,7 +10,7 @@ Vec3 ShapeBox::Support(const Vec3& direction, const Vec3& position, const Quat* 
 	float max_distance = direction.Dot(max_point);
 
 	//Itterate threw the invididual points, checking which for which one is the furthest in the given direction
-	for (int i = 1; i < _BoxPoints.size() ; i++)
+	for (int i = 1; i < _BoxPoints.size(); i++)
 	{
 		const Vec3 point = orientation->RotatePoint(_BoxPoints[i]) + position;
 
@@ -37,7 +37,7 @@ Vec3 ShapeBox::Support(const Vec3& direction, const Vec3& position, const Quat* 
 }
 
 //Builds Box Shape and Its points, bound to the object
-void ShapeBox::Build(const Vec3* points, const int num)
+void ShapeConvex::Build(const Vec3* points, const int num)
 {
 	for (int i = 0; i < num; i++)
 	{
@@ -60,8 +60,9 @@ void ShapeBox::Build(const Vec3* points, const int num)
 	_CentreOfMass = (_BoxBounds.maxs + _BoxBounds.mins) * 0.5f;
 }
 //Remember used for CCD (continious collision detection) , taking in direction and angular velocity of the vertex travelling in that direction
-float ShapeBox::FastestLinearSpeed(const Vec3& angular_velocity, const Vec3& directions) const
+float ShapeConvex::FastestLinearSpeed(const Vec3& angular_velocity, const Vec3& directions) const
 {
+	//Works the same as ShapeBox iteration of function , since the physics applies to both shape types
 	float max_speed = 0.0f;
 	for (int i = 0; i < _BoxPoints.size(); i++)
 	{
@@ -69,7 +70,7 @@ float ShapeBox::FastestLinearSpeed(const Vec3& angular_velocity, const Vec3& dir
 		Vec3 r = _BoxPoints[i] - _CentreOfMass;
 		Vec3 linear_velocity = angular_velocity.Cross(r);
 		float speed = directions.Dot(linear_velocity);
-		
+
 		if (speed > max_speed)
 		{
 			max_speed = speed;
@@ -78,7 +79,7 @@ float ShapeBox::FastestLinearSpeed(const Vec3& angular_velocity, const Vec3& dir
 	return max_speed;
 }
 
-Mat3 ShapeBox::InertiaTensor()
+Mat3 ShapeConvex::InertiaTensor()
 {
 	//Mass Matrix For box centered is around zero
 	const float dx = _BoxBounds.maxs.x - _BoxBounds.mins.x;
@@ -103,7 +104,7 @@ Mat3 ShapeBox::InertiaTensor()
 	const float R2 = R.GetLengthSqr();
 
 	Mat3 pat_tensor;
-	pat_tensor.rows[0] = Vec3(R2 - R.x * R.x , R.x * R.y , R.x * R.z);
+	pat_tensor.rows[0] = Vec3(R2 - R.x * R.x, R.x * R.y, R.x * R.z);
 	pat_tensor.rows[0] = Vec3(R.y * R.x, R2 - R.y * R.y, R.y * R.z);
 	pat_tensor.rows[0] = Vec3(R.z * R.x, R.z * R.y, R2 - R.z * R.z);
 
@@ -113,7 +114,9 @@ Mat3 ShapeBox::InertiaTensor()
 
 }
 
-Bounds ShapeBox::GetBounds(const Vec3& position, const Quat& orientation) const
+
+//Getting bounds is used to define the boundaries for shape,, applying it to corners while adding the orientation to accurately define these points
+Bounds ShapeConvex::GetBounds(const Vec3& position, const Quat& orientation) const
 {
 	Vec3 corners[8];
 
@@ -136,4 +139,17 @@ Bounds ShapeBox::GetBounds(const Vec3& position, const Quat& orientation) const
 	}
 
 	return bounds;
+}
+
+
+//We Further Need to construct the inertia tensor , furthe we need to be certain we are only storing the points of the convex hull
+//these points are further the surface as applied to all objects.
+
+//This said we jave to slowly build up connections of the points , if points are inside the convex hull , we remove them , we can achieve this by
+// building a simplex, tehen expanding it out to include all points outside it.
+
+
+int FindPointInFurthestDirection(const Vec3* point, const int num, const Vec3& direction)
+{
+
 }

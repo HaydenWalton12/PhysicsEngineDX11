@@ -191,6 +191,9 @@
     <ClInclude Include="ShapeBox.h">
       <Filter>HeaderFiles\Physics\Shapes</Filter>
     </ClInclude>
+    <ClInclude Include="ShapeConvex.h">
+      <Filter>HeaderFiles\Physics\Shapes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -249,6 +252,9 @@
       <Filter>SourceFiles\Physics</Filter>
     </ClCompile>
     <ClCompile Include="ShapeBox.cpp">
+      <Filter>SourceFiles\Physics\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="ShapeConvex.cpp">
       <Filter>SourceFiles\Physics\Shape</Filter>
     </ClCompile>
   </ItemGroup>

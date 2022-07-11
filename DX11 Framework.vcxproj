@@ -389,6 +389,7 @@
     <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="Scene0.cpp" />
     <ClCompile Include="ShapeBox.cpp" />
+    <ClCompile Include="ShapeConvex.cpp" />
     <ClCompile Include="ShapeSphere.cpp" />
     <ClCompile Include="TextureComponent.cpp" />
   </ItemGroup>
@@ -433,6 +434,7 @@
     <ClInclude Include="ShaderCompiler.h" />
     <ClInclude Include="Shape.h" />
     <ClInclude Include="ShapeBox.h" />
+    <ClInclude Include="ShapeConvex.h" />
     <ClInclude Include="ShapeSphere.h" />
     <ClInclude Include="StaticCamera.h" />
     <ClInclude Include="Structures.h" />
