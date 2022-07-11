@@ -148,8 +148,47 @@ Bounds ShapeConvex::GetBounds(const Vec3& position, const Quat& orientation) con
 //This said we jave to slowly build up connections of the points , if points are inside the convex hull , we remove them , we can achieve this by
 // building a simplex, tehen expanding it out to include all points outside it.
 
+//All functions below are resonsible for this process
 
+//Used to find the point that is the furthest in a given direction (this is essentially the support function we have created for the box) however works slightly differently
 int FindPointInFurthestDirection(const Vec3* point, const int num, const Vec3& direction)
 {
+	int max_id = 0;
+
+	//Max distance from give value from the given point
+
+	float max_distance = direction.Dot(point[0]);
+	for (int i = 0; i < num; i++)
+	{
+		float distance = direction.Dot(point[0]);
+		//Replace new max distance point and change the ID to relevant point given in the current iteration of the loop
+		if (distance > max_distance)
+		{
+			max_distance = distance;
+				max_id = i;
+		}
+
+	}
+		
+	return max_id;
+
 
 }
+
+
+//Used to find another point that is furthest in the opposite direction of the point , this is typically given from the max point found from the function above
+float DistanceFromLine(const Vec3& a, const Vec3& b, const Vec3& point)
+{
+	Vec3 ab = b - a;
+	ab.Normalize();
+
+	Vec3 ray = point - a;
+	
+	Vec3 projection = ab * ray.Dot(ab);
+	Vec3 perpindicular = ray - projection;
+
+	return perpindicular.GetMagnitude();
+}
+
+
+//Find a third point that is furthest from the axis of points formed from 1 & 2
