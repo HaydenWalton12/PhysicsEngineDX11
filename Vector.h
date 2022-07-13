@@ -228,6 +228,7 @@ public:
 
 	const Vec3& Normalize();
 	float GetMagnitude() const;
+	//Returns length sqaured, essentially and applied via utility of dot product itself (squaring duh)
 	float GetLengthSqr() const { return Dot(*this); }
 	bool IsValid() const;
 	void GetOrtho(Vec3& u, Vec3& v) const;

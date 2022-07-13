@@ -4,6 +4,7 @@
 
 class ShapeConvex : public Shape
 {
+
 public:
 
 	ShapeType _ShapeType;
@@ -47,4 +48,25 @@ public:
 	Bounds GetBounds(const Vec3& pos, const Quat& orient)  const override;
 	Bounds GetBounds() const override;
 	ShapeType GetType() const override;
+};
+
+
+struct tri_t
+{
+	int a;
+	int b;
+	int c;
+};
+struct edge_t
+{
+	int a;
+	int b;
+
+	//used to assign edges with their values
+	bool operator == (const edge_t& rhs) const
+	{
+		return ((a == rhs.a && b == rhs.b) || (a == rhs.b && b == rhs.a));
+	}
+
+
 };

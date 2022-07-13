@@ -191,4 +191,441 @@ float DistanceFromLine(const Vec3& a, const Vec3& b, const Vec3& point)
 }
 
 
-//Find a third point that is furthest from the axis of points formed from 1 & 2
+//this function finds the point furthest from the axis of pooints formed from the previous two functions
+
+Vec3 FindPointFurthestFromLine(const Vec3* points, const int num, const Vec3& point_a, const Vec3& point_b)
+{
+
+	int max_id = 0;
+
+	//Find Distance / Max distance using function above , this will the highest/max distance for now to compare underneath with all other given points of the convex
+	float max_distance = DistanceFromLine(point_a, point_b, points[0]);
+
+	for (int i = 0; i < num; i++)
+	{
+
+		float distance = DistanceFromLine(point_a, point_b, points[i]);
+
+		
+		if (distance > max_distance)
+		{
+			max_distance = distance;
+			max_id = i;
+		}
+	}
+	//Returns point with the furthest distance with the given two points , points taken from previous two functions processing points
+	return points[max_id];
+}
+
+
+
+//We then find the point that is furthest from the plane formed from previous processed points
+//We collate individual points, use this to form a triangle of points, we then find the facing normal direction to see how far the triangle of points is
+//This will be used later to build an array of index points now precalculated to create a convex shape
+float DistanceFromTriangle(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3 & point)
+{
+
+	Vec3 ab = b - a;
+	Vec3 ac = c - a;
+
+	//Get the outfacing vector between these vertex points
+	Vec3 normal = ab.Cross(ac);
+	normal.Normalize();
+
+	Vec3 ray = point - a;
+	float distance = ray.Dot(normal);
+
+	return distance;
+
+}
+
+//Passing the individual vertex points that compose a triangle , we pass in the additional created convex points to then calculate the max distance of points that when collated
+//used in accompany above to find which points are furthest from triangles being collated from the points
+Vec3 FindPointFurthestFromTriangle(const Vec3* points, const int num, const Vec3& point_a, const Vec3& point_b, const Vec3 point_c)
+{
+
+	int max_id = 0;
+
+	//Find initial maximum distance 
+	float max_distance = DistanceFromTriangle(point_a, point_b, point_c, points[0]);
+
+
+	//Iterate current findings with aforementioned points given
+	for (int i = 0; i < num; i++)
+	{
+		float distance = DistanceFromTriangle(point_a, point_b, point_c, points[i]);
+
+		///If Doesnt Work Use this
+		//if (distance * distance  > max_distance * max_distance)
+		if (distance > max_distance)
+		{
+
+
+			max_distance = distance;
+
+			max_id = i;
+		}
+	
+		return points[max_id];
+	}
+}
+
+//With all given and said, we can now build the convex shape using the primtive points and traingle we p[re-calculated , this will be possible with the utility of all the given functions
+//above ,allowing 
+void BuildTetrahedron(const Vec3 * verticies , const int num , std::vector<Vec3> & hull_points , std::vector<tri_t>& hull_triangles )
+{
+	hull_points.clear();
+	hull_triangles.clear();
+
+	Vec3 points[4];
+
+	int idx = FindPointInFurthestDirection(verticies, num, Vec3(1.0f, 0.0f, 0.0f));
+	points[0] = verticies[idx];
+	idx = FindPointInFurthestDirection(verticies, num, points[0] * -1.0f);
+ 
+	points[1] = verticies[idx];
+	points[2] = FindPointFurthestFromLine(verticies, num, points[0], points[1]);
+	points[3] = FindPointFurthestFromTriangle(verticies, num, points[0], points[1], points[2]);
+
+	//Important for making sure ordering is for culling order of drawing indicies to be correct
+	float distance = DistanceFromTriangle(points[0], points[1], points[2], points[3]);
+
+	if (distance > 0.0f)
+	{
+		std::swap(points[0], points[1]);
+
+	}
+
+	//Collate Points to build tetrahedron
+	hull_points.push_back(points[0]);
+	hull_points.push_back(points[1]);
+	hull_points.push_back(points[2]);
+	hull_points.push_back(points[3]);
+
+	tri_t tri;
+	tri.a = 0;
+	tri.b = 1;
+	tri.c = 2;
+	hull_triangles.push_back(tri);
+
+	tri.a = 0;
+	tri.b = 2;
+	tri.c = 3;
+
+	hull_triangles.push_back(tri);
+
+	tri.a = 2;
+	tri.b = 1;
+	tri.c = 3;
+	hull_triangles.push_back(tri);
+
+	tri.a = 1;
+	tri.b = 0;
+	tri.c = 3;
+	hull_triangles.push_back(tri);
+
+}
+
+//We now need to further check the end of the function that each faces is draw order is counter clock wise, we uuse normals to calulcate each face 
+//we need to create an outile to perform to expand the tetradron to the created convex hull
+
+void ExpandConvexHull(std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles, const std::vector<Vec3> verticies)
+{
+
+	std::vector<Vec3> external_verticies = verticies;
+
+	RemovalInternalPoints(hull_points, hull_triangles, external_verticies);
+
+	while (external_verticies.size() > 0)
+	{
+		int point_ID = FindPointInFurthestDirection(external_verticies.data(), (int)external_verticies.size(), external_verticies[0]);
+
+		Vec3 point = external_verticies[point_ID];
+
+		//Remove this element
+		external_verticies.erase(external_verticies.begin() + point_ID);
+
+		AddPoint(hull_points, hull_triangles, points);
+
+		RemovalInternalPoints(hull_points, hull_triangles, external_verticies);
+
+
+	}
+
+	RemoveUnreferencedVertices(hull_points, hull_triangles);
+
+
+}
+
+//RemovalInteralPoints is a brute force function , iterating threw a list to check if any points are inside the current convex hull
+//if they are , we remove points from the list
+
+void RemoveInternalPoints(const std::vector<Vec3>& hull_points, const std::vector<tri_t>& hull_triangles, std::vector<Vec3>& check_points)
+{
+	for (int i = 0; i < check_points.size() ; i++)
+	{
+		const Vec3& point = check_points[i];
+
+		bool is_external = false;
+
+		for (int j = 0; j < hull_triangles.size(); j++)
+		{
+
+			//Establish Tri Point Connections
+			const tri_t& tri = hull_triangles[j];
+			const Vec3& a = hull_points[tri.a];
+			const Vec3& b = hull_points[tri.b];
+			const Vec3& c = hull_points[tri.c];
+
+			//Point is in front of any triangle then it becomes external
+			float distance = DistanceFromTriangle(a , b , c ,point);
+
+			//If the point is in front of any traingle ,it is external , distance , since remember we use the "DistanceFromTriangle"
+			//to calculate distance at a point with given triangle points , if larger , it means the point within the list of convex points is 
+			//external
+			if (distance > 0.0f)
+			{
+				is_external = true;
+				break;
+			}
+		}
+
+		//If not external , then it is also inside the convex shape and needs to be removed
+		if (!is_external)
+		{
+			check_points.erase(check_points.begin() + i);
+			//Removes point from iteration list
+			i--;
+		}	
+	}
+	//We can further remove any points that are a little close to the given hull points
+	//Checking remaining points prior to seeing whether they are external or not
+	for (int i = 0; i < check_points.size(); i++)
+	{
+
+		const Vec3& point = check_points[i];
+
+		bool too_close = false;
+
+		for (int j = 0; j < hull_points.size(); j++)
+		{
+
+			Vec3 hull_point = hull_points[j];
+
+			//Get Given Current Vertex Position difference
+			Vec3 point_check = hull_point - point;
+
+			if (point_check.GetLengthSqr() < 0.01f * 0.01f ) // Measuring Instance of 1cm, 1cm too close
+			{
+				too_close = true;
+				break;
+			}
+		}
+
+		//Remove vertex point that is too close
+			
+		if (too_close)
+		{
+			check_points.erase(check_points.begin() + i);
+			//Again , deduct point from iteration within loop
+			i--;
+		}
+
+	}
+}
+
+//Add Point function , we will loop over all the triangles and determine if the point is on either positivie side of the traingle
+//if it is , delete the triangles, once done we will find the remaining edges and build new traingles , this is done to simplify the amount
+//of tris on a given convex , to reduce and optimise per tri/point calculations on the triangle , as if a point/tri can be made redudant remove it
+
+bool IsEdgeUnique(const std::vector<tri_t>& triangles, const std::vector<int>& facing_triangles, const int ignore_triangles
+	, const edge_t& edge)
+{
+	for (int i = 0; i < facing_triangles.size(); i++)
+	{
+		const int triangle_id = facing_triangles[i];
+
+		//Triangle to ignore will be ignored 
+		if (ignore_triangles == triangle_id)
+		{
+			continue;
+		}
+
+		const tri_t& triangle = triangles[triangle_id];
+
+		edge_t edges[3];
+
+		edges[0].a = triangle.a;
+		edges[0].b = triangle.b;
+
+		edges[1].a = triangle.a;
+		edges[1].b = triangle.b;
+
+		edges[2].a = triangle.a;
+		edges[2].b = triangle.b;
+
+		for (int e = 0; e < 3; e++)
+		{
+
+			if (edge == edges[e])
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
+
+}
+
+
+void AddPoint(std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles, const Vec3& point)
+{
+
+	//Replacing old triangles to build new triangles with the newly changed and optimised point lists
+	
+	//Used to find all triangles that face at this point
+	std::vector<int> facing_triangles;
+	for (int i = (int)hull_triangles.size() - 1; i >= 0; i--)
+	{
+		const tri_t& tri = hull_triangles[i];
+
+		const Vec3& a = hull_points[tri.a];
+		const Vec3& b = hull_points[tri.b];
+		const Vec3& c = hull_points[tri.c];
+
+		const float distance = DistanceFromTriangle(a, b, c, point);
+		if (distance > 0.0f)
+		{
+			facing_triangles.push_back(i);
+		}
+	}
+
+	//Finding all edges that are unique to the triangles, these will be edges that will form newly optimise convex and triangles
+
+	std::vector<edge_t> unique_edges;
+	for (int i = 0; i < facing_triangles.size(); i++)
+	{
+		const int triangle_id = facing_triangles[i];
+		const tri_t& triangle = hull_triangles[triangle_id];
+
+		//Edges enact as the vertex points that will be used to fill index list of triangle order to create new triangle
+		edge_t edges[3];
+
+		edges[0].a = triangle.a;
+		edges[0].b = triangle.b;
+
+		edges[1].a = triangle.b;
+		edges[1].b = triangle.c;
+
+		edges[2].a = triangle.c;
+		edges[2].b = triangle.a;
+
+		for (int e = 0; e < 3; e++)
+		{
+			//Checks for each edge being unique
+			if(IsEdgeUnique(hull_triangles , facing_triangles , triangle_id , edges[e]) )
+			{ 
+				//add new edge if it unique with all points and values given.
+				unique_edges.push_back(edges[e]);
+			}
+
+
+		}
+	}
+
+	//Need to remove old triangles/values from lists 
+	for (int i = 0; i < facing_triangles.size(); i++)
+	{
+		//Appropriate method of erase since old triangles given in said values, all new edges/values assigned 
+		//to "unique_edges"
+		hull_triangles.erase(hull_triangles.begin() + facing_triangles[i] );
+
+
+	}
+	//Add new points
+	hull_points.push_back(point);
+
+	const int new_point_id = (int)hull_points.size() - 1;
+
+	//Adding triangles for each unique edge
+	for (int i = 0; i < unique_edges.size(); i++)
+	{
+		const edge_t& edge = unique_edges[i];
+
+		tri_t triangle;
+
+		triangle.a = edge.a;
+		triangle.b = edge.b;
+		triangle.c = new_point_id;
+
+		hull_triangles.push_back(triangle);
+	}
+
+}
+
+
+//We still need to remove the points that create the triangle, this function does that , we loop over each point 
+//checking if it referenced in new triangle , then simply if isnt, remove it
+void RemoveUnreferencedVerticies(std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles)
+{
+	for (int i = 0; i < hull_points.size(); i++)
+	{
+		bool is_used = false;
+
+		//If the current hull point iteration instance within the conditional is true(meaning the hull point
+		//iteration correctly adds too the current triangle referenced in nested loop" it means this currently triangle is used. 
+		
+		for (int j = 0; j < hull_triangles.size(); j++)
+		{
+			const tri_t& triangle = hull_triangles[j];
+
+			if (triangle.a == i || triangle.b == i || triangle.c == i)
+			{
+				is_used == true;
+				break;
+			}
+		}
+		
+		//Will continue to next iteration instead of checking below if it isnt referenced
+		if (is_used == true)
+		{
+			continue;
+		}
+		//if the current triangle referenced in nested loop is greater than current reference 
+		//triangle, this means the triangle is not used, we remove it as seen in conditions
+		for (int j = 0; j < hull_triangles.size(); j++)
+		{
+			tri_t& triangle = hull_triangles[j];
+
+			if (triangle.a > i)
+			{
+				triangle.a--;
+			}
+			if (triangle.b > i)
+			{
+				triangle.b--;
+			}
+			if (triangle.c > i)
+			{
+				triangle.c--;
+			}
+		}
+		//Erease point as mentioned
+		hull_points.erase(hull_points.begin() + i);
+		i--;
+	}
+}
+
+//Correclty builds convex hull
+void BuildConvexHull(const std::vector<Vec3>& verticies, std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles)
+{
+	if (verticies.size() < 4)
+	{
+		return;
+	}
+
+	//Build tetrahedron
+	BuildTetrahedron(verticies.data(), (int)verticies.size(), hull_points, hull_triangles);
+	ExpandConvexHull(hull_points, hull_triangles, verticies);
+}
