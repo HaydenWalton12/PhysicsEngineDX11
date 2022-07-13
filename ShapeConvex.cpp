@@ -629,3 +629,28 @@ void BuildConvexHull(const std::vector<Vec3>& verticies, std::vector<Vec3>& hull
 	BuildTetrahedron(verticies.data(), (int)verticies.size(), hull_points, hull_triangles);
 	ExpandConvexHull(hull_points, hull_triangles, verticies);
 }
+
+
+//Still need to calculate the massMatrix (inertia tensor) , to do this ,we will decompose the entire convex hull into individual
+//chunks of tetrahedrons , calculating the inertia tensor for each chunk , then total the result together.
+
+
+bool IsExternal(const std::vector<Vec3>& points, const std::vector<tri_t>& triangles, const Vec3& point)
+{
+	bool is_external = false;
+
+	for (int t = 0; t < triangles.size(); t++)
+	{
+		//Assign traingle to said value
+		const tri_t & triangle = triangles[t];
+
+		const Vec3& a = points[triangle.a];
+		const Vec3& b = points[triangle.b];
+		const Vec3& c = points[triangle.c];
+
+
+	}
+
+
+
+}
