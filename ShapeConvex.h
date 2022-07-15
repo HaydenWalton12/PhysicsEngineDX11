@@ -1,6 +1,24 @@
 #pragma once 
 #include "Shape.h"
+struct tri_t
+{
+	int a;
+	int b;
+	int c;
+};
+struct edge_t
+{
+	int a;
+	int b;
 
+	//used to assign edges with their values
+	bool operator == (const edge_t& rhs) const
+	{
+		return ((a == rhs.a && b == rhs.b) || (a == rhs.b && b == rhs.a));
+	}
+
+
+};
 
 class ShapeConvex : public Shape
 {
@@ -48,25 +66,26 @@ public:
 	Bounds GetBounds(const Vec3& pos, const Quat& orient)  const override;
 	Bounds GetBounds() const override;
 	ShapeType GetType() const override;
+
+
+	void AddPoint(std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles, const Vec3& point);
+	int FindPointInFurthestDirection(const Vec3* point, const int num, const Vec3& direction);
+	float DistanceFromLine(const Vec3& a, const Vec3& b, const Vec3& point);
+	Vec3 FindPointFurthestFromLine(const Vec3* points, const int num, const Vec3& point_a, const Vec3& point_b);
+	float DistanceFromTriangle(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3& point);
+	Vec3 FindPointFurthestFromTriangle(const Vec3* points, const int num, const Vec3& point_a, const Vec3& point_b, const Vec3 point_c);
+	void BuildTetrahedron(const Vec3* verticies, const int num, std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles);
+	void ExpandConvexHull(std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles, const std::vector<Vec3> verticies);
+	void RemoveInternalPoints(const std::vector<Vec3>& hull_points, const std::vector<tri_t>& hull_triangles, std::vector<Vec3>& check_points);
+	bool IsEdgeUnique(const std::vector<tri_t>& triangles, const std::vector<int>& facing_triangles, const int ignore_triangles
+		, const edge_t& edge);
+	void RemoveUnreferencedVerticies(std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles);
+	void BuildConvexHull(const std::vector<Vec3>& verticies, std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles);
+	bool IsExternal(const std::vector<Vec3>& points, const std::vector<tri_t>& triangles, const Vec3& point);
+	Vec3 CalculateCentreOfMass(const std::vector<Vec3>& points, const std::vector<tri_t>& triangles);
+	Mat3 CalculateInertiaTensor(const std::vector<Vec3>& points, const std::vector<tri_t>& triangles, const Vec3& cm);
+
+
+
 };
 
-
-struct tri_t
-{
-	int a;
-	int b;
-	int c;
-};
-struct edge_t
-{
-	int a;
-	int b;
-
-	//used to assign edges with their values
-	bool operator == (const edge_t& rhs) const
-	{
-		return ((a == rhs.a && b == rhs.b) || (a == rhs.b && b == rhs.a));
-	}
-
-
-};

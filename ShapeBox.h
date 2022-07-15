@@ -20,7 +20,7 @@ public:
 		_CentreOfMass.Zero();
 
 		//Sets Up THe Object Bound To THis Shape , Replacing having to individualy define a shape in a scene class to the same length as this
-		_Object = new Object(render, L"Floor.dds", tex, "Cube.Obj");
+		_Object = new Object(render, L"Floor.dds", tex, "cube.Obj");
 		_Object->SetSurface(surface.Ambient, surface.Diffuse, surface.Specular, surface.SpecularPower);
 
 		_Object->SetVertexShader(L"DX11 Framework.fx");

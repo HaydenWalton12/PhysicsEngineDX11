@@ -40,4 +40,5 @@ public:
 	Bounds GetBounds(const Vec3& pos, const Quat& orient)  const override;
 	Bounds GetBounds() const override;
 	ShapeType GetType() const override;
+
 };

@@ -147,6 +147,91 @@ Bounds ShapeConvex::GetBounds(const Vec3& position, const Quat& orientation) con
 	return bounds;
 }
 
+void  ShapeConvex::AddPoint(std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles, const Vec3& point)
+{
+
+	//Replacing old triangles to build new triangles with the newly changed and optimised point lists
+
+	//Used to find all triangles that face at this point
+	std::vector<int> facing_triangles;
+	for (int i = (int)hull_triangles.size() - 1; i >= 0; i--)
+	{
+		const tri_t& tri = hull_triangles[i];
+
+		const Vec3& a = hull_points[tri.a];
+		const Vec3& b = hull_points[tri.b];
+		const Vec3& c = hull_points[tri.c];
+
+		const float distance = DistanceFromTriangle(a, b, c, point);
+		if (distance > 0.0f)
+		{
+			facing_triangles.push_back(i);
+		}
+	}
+
+	//Finding all edges that are unique to the triangles, these will be edges that will form newly optimise convex and triangles
+
+	std::vector<edge_t> unique_edges;
+	for (int i = 0; i < facing_triangles.size(); i++)
+	{
+		const int triangle_id = facing_triangles[i];
+		const tri_t& triangle = hull_triangles[triangle_id];
+
+		//Edges enact as the vertex points that will be used to fill index list of triangle order to create new triangle
+		edge_t edges[3];
+
+		edges[0].a = triangle.a;
+		edges[0].b = triangle.b;
+
+		edges[1].a = triangle.b;
+		edges[1].b = triangle.c;
+
+		edges[2].a = triangle.c;
+		edges[2].b = triangle.a;
+
+		for (int e = 0; e < 3; e++)
+		{
+			//Checks for each edge being unique
+			if (IsEdgeUnique(hull_triangles, facing_triangles, triangle_id, edges[e]))
+			{
+				//add new edge if it unique with all points and values given.
+				unique_edges.push_back(edges[e]);
+			}
+
+
+		}
+	}
+
+	//Need to remove old triangles/values from lists 
+	for (int i = 0; i < facing_triangles.size(); i++)
+	{
+		//Appropriate method of erase since old triangles given in said values, all new edges/values assigned 
+		//to "unique_edges"
+		hull_triangles.erase(hull_triangles.begin() + facing_triangles[i]);
+
+
+	}
+	//Add new points
+	hull_points.push_back(point);
+
+	const int new_point_id = (int)hull_points.size() - 1;
+
+	//Adding triangles for each unique edge
+	for (int i = 0; i < unique_edges.size(); i++)
+	{
+		const edge_t& edge = unique_edges[i];
+
+		tri_t triangle;
+
+		triangle.a = edge.a;
+		triangle.b = edge.b;
+		triangle.c = new_point_id;
+
+		hull_triangles.push_back(triangle);
+	}
+
+}
+
 
 //We Further Need to construct the inertia tensor , furthe we need to be certain we are only storing the points of the convex hull
 //these points are further the surface as applied to all objects.
@@ -157,7 +242,7 @@ Bounds ShapeConvex::GetBounds(const Vec3& position, const Quat& orientation) con
 //All functions below are resonsible for this process
 
 //Used to find the point that is the furthest in a given direction (this is essentially the support function we have created for the box) however works slightly differently
-int FindPointInFurthestDirection(const Vec3* point, const int num, const Vec3& direction)
+int ShapeConvex::FindPointInFurthestDirection(const Vec3* point, const int num, const Vec3& direction)
 {
 	int max_id = 0;
 
@@ -183,7 +268,7 @@ int FindPointInFurthestDirection(const Vec3* point, const int num, const Vec3& d
 
 
 //Used to find another point that is furthest in the opposite direction of the point , this is typically given from the max point found from the function above
-float DistanceFromLine(const Vec3& a, const Vec3& b, const Vec3& point)
+float ShapeConvex::DistanceFromLine(const Vec3& a, const Vec3& b, const Vec3& point)
 {
 	Vec3 ab = b - a;
 	ab.Normalize();
@@ -199,7 +284,7 @@ float DistanceFromLine(const Vec3& a, const Vec3& b, const Vec3& point)
 
 //this function finds the point furthest from the axis of pooints formed from the previous two functions
 
-Vec3 FindPointFurthestFromLine(const Vec3* points, const int num, const Vec3& point_a, const Vec3& point_b)
+Vec3 ShapeConvex::FindPointFurthestFromLine(const Vec3* points, const int num, const Vec3& point_a, const Vec3& point_b)
 {
 
 	int max_id = 0;
@@ -228,7 +313,7 @@ Vec3 FindPointFurthestFromLine(const Vec3* points, const int num, const Vec3& po
 //We then find the point that is furthest from the plane formed from previous processed points
 //We collate individual points, use this to form a triangle of points, we then find the facing normal direction to see how far the triangle of points is
 //This will be used later to build an array of index points now precalculated to create a convex shape
-float DistanceFromTriangle(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3 & point)
+float ShapeConvex::DistanceFromTriangle(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3 & point)
 {
 
 	Vec3 ab = b - a;
@@ -247,7 +332,7 @@ float DistanceFromTriangle(const Vec3& a, const Vec3& b, const Vec3& c, const Ve
 
 //Passing the individual vertex points that compose a triangle , we pass in the additional created convex points to then calculate the max distance of points that when collated
 //used in accompany above to find which points are furthest from triangles being collated from the points
-Vec3 FindPointFurthestFromTriangle(const Vec3* points, const int num, const Vec3& point_a, const Vec3& point_b, const Vec3 point_c)
+Vec3 ShapeConvex::FindPointFurthestFromTriangle(const Vec3* points, const int num, const Vec3& point_a, const Vec3& point_b, const Vec3 point_c)
 {
 
 	int max_id = 0;
@@ -278,7 +363,7 @@ Vec3 FindPointFurthestFromTriangle(const Vec3* points, const int num, const Vec3
 
 //With all given and said, we can now build the convex shape using the primtive points and traingle we p[re-calculated , this will be possible with the utility of all the given functions
 //above ,allowing 
-void BuildTetrahedron(const Vec3 * verticies , const int num , std::vector<Vec3> & hull_points , std::vector<tri_t>& hull_triangles )
+void ShapeConvex::BuildTetrahedron(const Vec3 * verticies , const int num , std::vector<Vec3> & hull_points , std::vector<tri_t>& hull_triangles )
 {
 	hull_points.clear();
 	hull_triangles.clear();
@@ -335,12 +420,12 @@ void BuildTetrahedron(const Vec3 * verticies , const int num , std::vector<Vec3>
 //We now need to further check the end of the function that each faces is draw order is counter clock wise, we uuse normals to calulcate each face 
 //we need to create an outile to perform to expand the tetradron to the created convex hull
 
-void ExpandConvexHull(std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles, const std::vector<Vec3> verticies)
+void ShapeConvex::ExpandConvexHull(std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles, const std::vector<Vec3> verticies)
 {
 
 	std::vector<Vec3> external_verticies = verticies;
 
-	RemovalInternalPoints(hull_points, hull_triangles, external_verticies);
+	RemoveInternalPoints(hull_points, hull_triangles, external_verticies);
 
 	while (external_verticies.size() > 0)
 	{
@@ -351,14 +436,14 @@ void ExpandConvexHull(std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_t
 		//Remove this element
 		external_verticies.erase(external_verticies.begin() + point_ID);
 
-		AddPoint(hull_points, hull_triangles, points);
+		AddPoint(hull_points, hull_triangles, point);
 
-		RemovalInternalPoints(hull_points, hull_triangles, external_verticies);
+		RemoveInternalPoints(hull_points, hull_triangles, external_verticies);
 
 
 	}
 
-	RemoveUnreferencedVertices(hull_points, hull_triangles);
+	RemoveUnreferencedVerticies(hull_points, hull_triangles);
 
 
 }
@@ -366,7 +451,7 @@ void ExpandConvexHull(std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_t
 //RemovalInteralPoints is a brute force function , iterating threw a list to check if any points are inside the current convex hull
 //if they are , we remove points from the list
 
-void RemoveInternalPoints(const std::vector<Vec3>& hull_points, const std::vector<tri_t>& hull_triangles, std::vector<Vec3>& check_points)
+void ShapeConvex::RemoveInternalPoints(const std::vector<Vec3>& hull_points, const std::vector<tri_t>& hull_triangles, std::vector<Vec3>& check_points)
 {
 	for (int i = 0; i < check_points.size() ; i++)
 	{
@@ -444,7 +529,7 @@ void RemoveInternalPoints(const std::vector<Vec3>& hull_points, const std::vecto
 //if it is , delete the triangles, once done we will find the remaining edges and build new traingles , this is done to simplify the amount
 //of tris on a given convex , to reduce and optimise per tri/point calculations on the triangle , as if a point/tri can be made redudant remove it
 
-bool IsEdgeUnique(const std::vector<tri_t>& triangles, const std::vector<int>& facing_triangles, const int ignore_triangles
+bool ShapeConvex::IsEdgeUnique(const std::vector<tri_t>& triangles, const std::vector<int>& facing_triangles, const int ignore_triangles
 	, const edge_t& edge)
 {
 	for (int i = 0; i < facing_triangles.size(); i++)
@@ -485,95 +570,10 @@ bool IsEdgeUnique(const std::vector<tri_t>& triangles, const std::vector<int>& f
 }
 
 
-void AddPoint(std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles, const Vec3& point)
-{
-
-	//Replacing old triangles to build new triangles with the newly changed and optimised point lists
-	
-	//Used to find all triangles that face at this point
-	std::vector<int> facing_triangles;
-	for (int i = (int)hull_triangles.size() - 1; i >= 0; i--)
-	{
-		const tri_t& tri = hull_triangles[i];
-
-		const Vec3& a = hull_points[tri.a];
-		const Vec3& b = hull_points[tri.b];
-		const Vec3& c = hull_points[tri.c];
-
-		const float distance = DistanceFromTriangle(a, b, c, point);
-		if (distance > 0.0f)
-		{
-			facing_triangles.push_back(i);
-		}
-	}
-
-	//Finding all edges that are unique to the triangles, these will be edges that will form newly optimise convex and triangles
-
-	std::vector<edge_t> unique_edges;
-	for (int i = 0; i < facing_triangles.size(); i++)
-	{
-		const int triangle_id = facing_triangles[i];
-		const tri_t& triangle = hull_triangles[triangle_id];
-
-		//Edges enact as the vertex points that will be used to fill index list of triangle order to create new triangle
-		edge_t edges[3];
-
-		edges[0].a = triangle.a;
-		edges[0].b = triangle.b;
-
-		edges[1].a = triangle.b;
-		edges[1].b = triangle.c;
-
-		edges[2].a = triangle.c;
-		edges[2].b = triangle.a;
-
-		for (int e = 0; e < 3; e++)
-		{
-			//Checks for each edge being unique
-			if(IsEdgeUnique(hull_triangles , facing_triangles , triangle_id , edges[e]) )
-			{ 
-				//add new edge if it unique with all points and values given.
-				unique_edges.push_back(edges[e]);
-			}
-
-
-		}
-	}
-
-	//Need to remove old triangles/values from lists 
-	for (int i = 0; i < facing_triangles.size(); i++)
-	{
-		//Appropriate method of erase since old triangles given in said values, all new edges/values assigned 
-		//to "unique_edges"
-		hull_triangles.erase(hull_triangles.begin() + facing_triangles[i] );
-
-
-	}
-	//Add new points
-	hull_points.push_back(point);
-
-	const int new_point_id = (int)hull_points.size() - 1;
-
-	//Adding triangles for each unique edge
-	for (int i = 0; i < unique_edges.size(); i++)
-	{
-		const edge_t& edge = unique_edges[i];
-
-		tri_t triangle;
-
-		triangle.a = edge.a;
-		triangle.b = edge.b;
-		triangle.c = new_point_id;
-
-		hull_triangles.push_back(triangle);
-	}
-
-}
-
 
 //We still need to remove the points that create the triangle, this function does that , we loop over each point 
 //checking if it referenced in new triangle , then simply if isnt, remove it
-void RemoveUnreferencedVerticies(std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles)
+void ShapeConvex::RemoveUnreferencedVerticies(std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles)
 {
 	for (int i = 0; i < hull_points.size(); i++)
 	{
@@ -624,7 +624,7 @@ void RemoveUnreferencedVerticies(std::vector<Vec3>& hull_points, std::vector<tri
 }
 
 //Correclty builds convex hull
-void BuildConvexHull(const std::vector<Vec3>& verticies, std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles)
+void ShapeConvex::BuildConvexHull(const std::vector<Vec3>& verticies, std::vector<Vec3>& hull_points, std::vector<tri_t>& hull_triangles)
 {
 	if (verticies.size() < 4)
 	{
@@ -641,7 +641,7 @@ void BuildConvexHull(const std::vector<Vec3>& verticies, std::vector<Vec3>& hull
 //chunks of tetrahedrons , calculating the inertia tensor for each chunk , then total the result together.
 
 
-bool IsExternal(const std::vector<Vec3>& points, const std::vector<tri_t>& triangles, const Vec3& point)
+bool ShapeConvex::IsExternal(const std::vector<Vec3>& points, const std::vector<tri_t>& triangles, const Vec3& point)
 {
 	bool is_external = false;
 
@@ -672,7 +672,7 @@ bool IsExternal(const std::vector<Vec3>& points, const std::vector<tri_t>& trian
 
 //Calculating Centre Of Mass
 
-Vec3 CalculateCentreOfMass(const std::vector<Vec3> & points , const std::vector<tri_t> & triangles)
+Vec3 ShapeConvex::CalculateCentreOfMass(const std::vector<Vec3> & points , const std::vector<tri_t> & triangles)
 {
 	const int num_samples = 100;
 
@@ -709,8 +709,7 @@ Vec3 CalculateCentreOfMass(const std::vector<Vec3> & points , const std::vector<
 }
 
 //Calculating mass matrix/intertia tensor
-
-Mat3 CalculateInertiaTensor(const std::vector<Vec3>& points, const std::vector<tri_t>& triangles, const Vec3& cm)
+Mat3 ShapeConvex::CalculateInertiaTensor(const std::vector<Vec3>& points, const std::vector<tri_t>& triangles, const Vec3& cm)
 {
 	const int num_samples = 100;
 
