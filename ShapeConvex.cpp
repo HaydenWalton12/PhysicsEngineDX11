@@ -647,10 +647,109 @@ bool IsExternal(const std::vector<Vec3>& points, const std::vector<tri_t>& trian
 		const Vec3& a = points[triangle.a];
 		const Vec3& b = points[triangle.b];
 		const Vec3& c = points[triangle.c];
+	
 
+		//If the points is bfront of the triangles, we can identify as the point itself is external
 
+		float distance = DistanceFromTriangle(a, b, c, point);
+
+		//External factor will be any value above 0, > 0 = external point as distance determines this
+		if (distance > 0.0f)
+		{
+			is_external = true;
+			break;
+		}
 	}
 
+	return is_external;
+}
+
+//Calculating Centre Of Mass
+
+Vec3 CalculateCentreOfMass(const std::vector<Vec3> & points , const std::vector<tri_t> & triangles)
+{
+	const int num_samples = 100;
+
+	Bounds bounds;
+	//Expand to accomidate each point 
+	bounds.Expand(points.data(), points.size());
+
+	Vec3 cm(0.0f);
+
+	//Calulating bounds for individual axes for points
+	const float dx = bounds.WidthX() / (float)num_samples;
+	const float dy = bounds.WidthY() / (float)num_samples;
+	const float dz = bounds.WidthZ() / (float)num_samples;
+
+	int sample_count = 0;
+	for (float x = bounds.mins.x; x < bounds.maxs.x ; x += dx)
+	{
+		for (float y = bounds.mins.y; y < bounds.maxs.y; x += dy)
+		{
+			for (float z = bounds.mins.z; z < bounds.maxs.z; z += dz)
+			{
+				Vec3 point(x, y, z);
+				if (IsExternal(points, triangles, point))
+				{
+					continue;
+				}
+				cm += point;
+				sample_count++;
+			}
+		}
+	}
+	cm /= (float)sample_count;
+	return cm;
+}
+
+//Calculating mass matrix/intertia tensor
+
+Mat3 CalculateInertiaTensor(const std::vector<Vec3>& points, const std::vector<tri_t>& triangles, const Vec3& cm)
+{
+	const int num_samples = 100;
+
+	Bounds bounds;
+	bounds.Expand(points.data(), (int)points.size());
+
+	Mat3 tensor;
+	tensor.Zero();
+
+	//Calulating bounds for individual axes for points
+	const float dx = bounds.WidthX() / (float)num_samples;
+	const float dy = bounds.WidthY() / (float)num_samples;
+	const float dz = bounds.WidthZ() / (float)num_samples;
+
+	int sample_count = 0;
+	for (float x = bounds.mins.x; x < bounds.maxs.x; x += dx)
+	{for (float y = bounds.mins.y; y < bounds.maxs.y; x += dy)
+	{for (float z = bounds.mins.z; z < bounds.maxs.z; z += dz)
+		{
+			Vec3 point(x, y, z);
+			if (IsExternal(points, triangles, point))
+			{
+				continue;
+			}
+			
+			//Gets point relative to centre of mass
+			point -= cm;
+
+			tensor.rows[0][0] += point.y * point.y + point.z * point.z;
+			tensor.rows[1][1] += point.z * point.z + point.x * point.x;
+			tensor.rows[2][2] += point.x * point.x + point.y * point.y;
+
+			tensor.rows[0][1] += -1.0f * point.x * point.y;
+			tensor.rows[0][2] += -1.0f * point.x * point.z;
+			tensor.rows[1][2] += -1.0f * point.y * point.z;
+
+			tensor.rows[1][0] += -1.0f * point.x * point.y;
+			tensor.rows[2][0] += -1.0f * point.x * point.z;
+			tensor.rows[2][1] += -1.0f * point.y * point.z;
 
 
+			sample_count++;
+			}
+		}
+	}
+	tensor *= 1.0f / (float)sample_count;
+	return tensor;
 }
