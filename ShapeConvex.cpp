@@ -39,25 +39,31 @@ Vec3 ShapeConvex::Support(const Vec3& direction, const Vec3& position, const Qua
 //Builds Box Shape and Its points, bound to the object
 void ShapeConvex::Build(const Vec3* points, const int num)
 {
+	_BoxPoints.clear();
+	_BoxPoints.reserve(num);
+
+	//Add points
 	for (int i = 0; i < num; i++)
 	{
-		_BoxBounds.Expand(points[i]);
+		_BoxPoints.push_back(points[i]);
 	}
 
-	_BoxPoints.clear();
+	//Expand into a convex hull
+	std::vector<Vec3> hull_points;
+	std::vector<tri_t> hull_triangles;
 
-	_BoxPoints.push_back(Vec3(_BoxBounds.mins.x, _BoxBounds.mins.y, _BoxBounds.mins.z));
-	_BoxPoints.push_back(Vec3(_BoxBounds.mins.x, _BoxBounds.mins.y, _BoxBounds.mins.z));
-	_BoxPoints.push_back(Vec3(_BoxBounds.maxs.x, _BoxBounds.maxs.y, _BoxBounds.mins.z));
-	_BoxPoints.push_back(Vec3(_BoxBounds.mins.x, _BoxBounds.mins.y, _BoxBounds.maxs.z));
+	BuildConvexHull(_BoxPoints, hull_points, hull_triangles);
+	_BoxPoints = hull_points;
 
-	_BoxPoints.push_back(Vec3(_BoxBounds.maxs.x, _BoxBounds.maxs.y, _BoxBounds.maxs.z));
-	_BoxPoints.push_back(Vec3(_BoxBounds.mins.x, _BoxBounds.maxs.y, _BoxBounds.maxs.z));
-	_BoxPoints.push_back(Vec3(_BoxBounds.maxs.x, _BoxBounds.mins.y, _BoxBounds.maxs.z));
-	_BoxPoints.push_back(Vec3(_BoxBounds.maxs.x, _BoxBounds.maxs.y, _BoxBounds.mins.z));
+	//Expand Bounds
 
-	//Adding the points and adding the 0.5f gives the position ,middle of the box
-	_CentreOfMass = (_BoxBounds.maxs + _BoxBounds.mins) * 0.5f;
+	_BoxBounds.Clear();
+	_BoxBounds.Expand(_BoxPoints.data(), _BoxPoints.size());
+
+
+	_CentreOfMass = CalculateCentreOfMass(hull_points, hull_triangles);
+	InertiaTensor() = CalculateInertiaTensor(hull_points, hull_triangles, _CentreOfMass);
+
 }
 //Remember used for CCD (continious collision detection) , taking in direction and angular velocity of the vertex travelling in that direction
 float ShapeConvex::FastestLinearSpeed(const Vec3& angular_velocity, const Vec3& directions) const
