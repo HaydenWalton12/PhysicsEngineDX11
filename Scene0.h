@@ -248,3 +248,12 @@ private:
 };
 
 
+void AddDefaultBox(std::vector<Body>& bodies)
+{
+	Body body;
+	
+	body._Position = Vec3(0.0f, 0.0f, 0.0f);
+	body._Orientation = Quat(0.0f, 0.0f, 0.0f , 1.0f);
+	body._LinearVelocity.Zero();
+	body._AngularVelocity.Zero();
+}

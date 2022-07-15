@@ -137,3 +137,4 @@ Bounds ShapeBox::GetBounds(const Vec3& position, const Quat& orientation) const
 
 	return bounds;
 }
+
