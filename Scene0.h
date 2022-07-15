@@ -2,9 +2,22 @@
 #include "SceneManager.h"
 #include "Shape.h"
 #include "ShapeSphere.h"
+#include "ShapeBox.h"
+#include "ShapeConvex.h"
 #include <string>
 
 #include "Collision.h"
+
+static const float w = 50;
+static const float h = 25;
+
+static const Vec3 _GroundBox[] =
+{
+	Vec3(-w , -h ,0),
+	Vec3(w , -h ,0),
+	Vec3(-w , h ,0),
+	Vec3(w , h ,-1)
+};
 
 
 class Scene0 : public SceneManager
@@ -35,36 +48,48 @@ public:
 		_Camera_Direction = XMFLOAT3(0.0f, -0.01f, 0.01f);
 		_SceneCamera = new Camera(_Camera_Position, _Camera_Direction);
 
+		//body._Position = Vec3(0.0f, 25, 0.0f);
+		//body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
+		//body._LinearVelocity = Vec3(0.0f, 0.0f, 0.0f);
+		//body._InvMass = 1.0f;
+		//body._Elasicity = 0.0f;
+		//body._Friction = 0.5f;
+		//body._Shape = new ShapeSphere(0.5f, surface, _pRenderCommand, _Tex,XMFLOAT3(0.0f, 25, 0.0f), XMFLOAT3(0.5f, 0.5f, 0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f));
+		//
+		////_SceneBodies.push_back(body);
+		//
+		//body._Position = Vec3(4.0f, 25, 0.0f);
+		//body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
+		//body._LinearVelocity = Vec3(0.0f, 0.0f, 0.0f);
+		//body._InvMass = 1.0f;
+		//body._Elasicity = 0.0f;
+		//body._Friction = 0.5f;
+		//body._Shape = new ShapeSphere(0.5f, surface, _pRenderCommand, _Tex,XMFLOAT3(1.0f, 25, 0.0f), XMFLOAT3(0.5f, 0.5f, 0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f)); 
+		//
+		////_SceneBodies.push_back(body);
+
+		//body._Position = Vec3(0.0f, -20.0f, 0.0f);
+		//body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
+		//body._LinearVelocity = Vec3(0.0f, 0.0f, 0.0f);
+		//body._InvMass = 0.0f;
+		//body._Elasicity = 0.0f;
+		//body._Friction = 0.5f;
+		//body._Shape = new ShapeSphere(10.0f, surface, _pRenderCommand, _Tex, XMFLOAT3(0.0f, -20.0f, 0.0f), XMFLOAT3(10.0f, 10.0f, 10.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
+		
+		//_SceneBodies.push_back(body);
 
 		Body body;
-
-		body._Position = Vec3(0.0f, 25, 0.0f);
+		body._Position = Vec3(0.0f, 0.0f, 0.0f);
 		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
-		body._LinearVelocity = Vec3(0.0f, 0.0f, 0.0f);
-		body._InvMass = 1.0f;
-		body._Elasicity = 0.0f;
-		body._Friction = 0.5f;
-		body._Shape = new ShapeSphere(0.5f, surface, _pRenderCommand, _Tex,
-			XMFLOAT3(0.0f, 25, 0.0f), XMFLOAT3(0.5f, 0.5f, 0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f));
-		_SceneBodies.push_back(body);
-		body._Position = Vec3(4.0f, 25, 0.0f);
-		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
-		body._LinearVelocity = Vec3(0.0f, 0.0f, 0.0f);
-		body._InvMass = 1.0f;
-		body._Elasicity = 0.0f;
-		body._Friction = 0.5f;
-		body._Shape = new ShapeSphere(0.5f, surface, _pRenderCommand, _Tex,
-			XMFLOAT3(1.0f, 25, 0.0f), XMFLOAT3(0.5f, 0.5f, 0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f)); 
-		
-		_SceneBodies.push_back(body);
-
-		body._Position = Vec3(0.0f, -20.0f, 0.0f);
-		body._Orientation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
-		body._LinearVelocity = Vec3(0.0f, 0.0f, 0.0f);
+		body._LinearVelocity.Zero();
+		body._AngularVelocity.Zero();
 		body._InvMass = 0.0f;
-		body._Elasicity = 0.0f;
-		body._Friction = 0.5f;
-		body._Shape = new ShapeSphere(10.0f, surface, _pRenderCommand, _Tex, XMFLOAT3(0.0f, -20.0f, 0.0f), XMFLOAT3(10.0f, 10.0f, 10.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
+		body._Elasicity = 1.0f;
+		body._Friction = 0.0f;
+		//Can still use these ground points to define the paremeters of the box that can apply the physics , however we generate the 
+		//shape using obj
+		body._Shape = new ShapeBox(_GroundBox, sizeof(_GroundBox), surface, _pRenderCommand, _Tex, XMFLOAT3(0.0f, 0.0f, 0.0f),XMFLOAT3(1.0f, 1.0f , 1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f));
+
 		_SceneBodies.push_back(body);
 	}
 
@@ -247,13 +272,3 @@ private:
 	std::vector<Body> _SceneBodies;
 };
 
-
-void AddDefaultBox(std::vector<Body>& bodies)
-{
-	Body body;
-	
-	body._Position = Vec3(0.0f, 0.0f, 0.0f);
-	body._Orientation = Quat(0.0f, 0.0f, 0.0f , 1.0f);
-	body._LinearVelocity.Zero();
-	body._AngularVelocity.Zero();
-}

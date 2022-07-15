@@ -1,7 +1,5 @@
 #pragma once
 #include "Shape.h"
-
-
 class ShapeSphere : public Shape
 {
 public:
