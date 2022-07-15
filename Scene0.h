@@ -1,4 +1,11 @@
 #pragma once
+//Minkowski Addition/Sums
+// Within Geomtry , Minkowski sums is where two sets of position vectors within A & B are added together.
+//This results in new geometry from the given position vectors, these position vectors are essentially the vertex points
+//that collate together as our shapes.
+//To Get this to work. We:
+// Take the minkowski difference between A & B popints
+//then check if the origin is contained by the new convex set
 #include "SceneManager.h"
 #include "Shape.h"
 #include "ShapeSphere.h"
@@ -31,7 +38,7 @@ public:
 		_pGUIManager = gui_manager;
 		LoadScene();
 	}
-
+	
 	//Instantiates All Scene Objects
 	void LoadScene() override
 	{
@@ -92,9 +99,9 @@ public:
 
 		_SceneBodies.push_back(body);
 	}
-
+	
 	void Update(float delta_time) override;
-
+	
 	void ResolveContacts(Contact contact)
 	{
 		Body* A = contact._BodyA;
@@ -182,6 +189,7 @@ public:
 
 
 	}
+	
 	void DrawUI()
 	{
 		ImGui::Begin("Physics Engine Simulations");
@@ -201,6 +209,7 @@ public:
 		//ImGui::Text("R - Reset Scene");
 		ImGui::End();
 	}
+	
 	void PollInput(float delta_time) override
 	{
 		if (GetAsyncKeyState('W')) {
@@ -250,15 +259,13 @@ public:
 		}
 	}
 
-
-
 private:
-	Camera* _SceneCamera;
 
+	Camera* _SceneCamera;
 	XMFLOAT3 _Camera_Position;
 	XMFLOAT3 _Camera_Direction;
-
 	HWND _HWND;
+
 	RenderCommands* _pRenderCommand;
 	TextureComponent* _Tex;
 	ImGuiManager* _pGUIManager;
@@ -266,9 +273,7 @@ private:
 	Body body;
 
 	Object* _Sphere;
-
 	Object* _Plane;
-
 	std::vector<Body> _SceneBodies;
 };
 

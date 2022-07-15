@@ -10,7 +10,7 @@ Vec3 ShapeBox::Support(const Vec3& direction, const Vec3& position, const Quat* 
 	float max_distance = direction.Dot(max_point);
 
 	//Itterate threw the invididual points, checking which for which one is the furthest in the given direction
-	for (int i = 1; i < _BoxPoints.size() ; i++)
+	for (int i = 1; i < _BoxPoints.size(); i++)
 	{
 		const Vec3 point = orientation->RotatePoint(_BoxPoints[i]) + position;
 
@@ -35,7 +35,6 @@ Vec3 ShapeBox::Support(const Vec3& direction, const Vec3& position, const Quat* 
 		return max_point + normal;
 	}
 }
-
 //Builds Box Shape and Its points, bound to the object
 void ShapeBox::Build(const Vec3* points, const int num)
 {
@@ -77,7 +76,6 @@ float ShapeBox::FastestLinearSpeed(const Vec3& angular_velocity, const Vec3& dir
 	}
 	return max_speed;
 }
-
 Mat3 ShapeBox::InertiaTensor()
 {
 	//Mass Matrix For box centered is around zero
@@ -112,7 +110,6 @@ Mat3 ShapeBox::InertiaTensor()
 	return tensor;
 
 }
-
 Bounds ShapeBox::GetBounds(const Vec3& position, const Quat& orientation) const
 {
 	Vec3 corners[8];
@@ -137,12 +134,10 @@ Bounds ShapeBox::GetBounds(const Vec3& position, const Quat& orientation) const
 
 	return bounds;
 }
-
 Bounds ShapeBox::GetBounds() const
 {
 	return Bounds();
 }
-
 Shape::ShapeType ShapeBox::GetType() const
 {
 	return _ShapeType;
