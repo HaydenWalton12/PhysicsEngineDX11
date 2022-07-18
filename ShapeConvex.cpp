@@ -738,6 +738,7 @@ Mat3 ShapeConvex::CalculateInertiaTensor(const std::vector<Vec3>& points, const 
 			//Gets point relative to centre of mass
 			point -= cm;
 
+			//Distributing calculations among mass matrix
 			tensor.rows[0][0] += point.y * point.y + point.z * point.z;
 			tensor.rows[1][1] += point.z * point.z + point.x * point.x;
 			tensor.rows[2][2] += point.x * point.x + point.y * point.y;
@@ -757,4 +758,165 @@ Mat3 ShapeConvex::CalculateInertiaTensor(const std::vector<Vec3>& points, const 
 	}
 	tensor *= 1.0f / (float)sample_count;
 	return tensor;
+}
+
+//Signed Volumes - Prior to learning GJK algorithm , a predeccessor algorithm not utilised anymore is signed volume algorithm.
+//In order for GJK to work , it needs the projection of origins to the simplexes we use, The reason for this since GJK needs to know
+//the shortest distance/direction to an origin for any given simplex
+
+//Simplex - In geometry a simplex is a generalized term for the notion of a triangle , tetrahedron to arbitrary dimensions , it is named so 
+//because it simplex represents the simplest possible polytope made with line segments , meaning the line segment based shapes 
+// that are the simplest shapes that can be created are considered simplexes (polytope is polygonal shapes , with flate sides/faces that
+//are also 3D)
+//The reason we need simplexes anyway is to know the shortest distance and direction to the origin from all simplexes. Hence why we are creating
+//signed volume functions , that will allow us to find out these values in accordance to the GJK algorithm.
+// 1 - Line Segment 
+// 2 - Triangle 
+// 3 - Tetragedron
+//The signed volume approach is to find which axis-alligned plane maxmizes the projected area or length of a simplex. E.G
+//Lets say we have a 1-simplex / line segment , we project this onto the x, y and z axis , we then determine
+//which projection on each axis has the greatest length. We choose that axis , then project our point onto it as well
+// this given we can calcyulate the barycentric coordinates of the point onto 1-simplex. giving us the project of the point onto the simplex.
+
+Vec2 SignedVolume1D(const Vec3& s1, const Vec3& s2)
+{
+	//Calculated difference between both points , ray from a - b
+	Vec3 ab = s2 - s1;
+
+	//Calculated , ray from a  to origin
+	Vec3 ap = Vec3(0.0f) - s1;
+
+	//Projection of origin onto the line
+	Vec3 p0 = s1 + ab * ab.Dot(ap) / ab.GetLengthSqr();
+
+
+	//Choosing the axis with greatest length/distance
+
+	int id = 0;
+	float mu_max = 0;
+	for (int i = 0; i < 3; i++)
+	{
+		//Current ray distance , used in condition
+		float mu = s2[i] - s1[i];
+		if(mu * mu > mu_max * mu_max)
+		{
+			//Give us line segment / simple with greatest length/distance
+			mu_max = mu;
+			id = i;
+
+		}
+	}
+
+	//Project the simplex points and projected origin onto the "axis" with the greastest length
+
+	const float a = s1[id];
+	const float b = s2[id];
+	const float p = p0[id];
+
+	//Get the signed distance from a to p and from p to b
+	const float C1 = p - a;
+	const float C2 = b - p;
+
+	//Checking between if p is between a or b
+	if ((p > a && p < b) || (p > b && p < a))
+	{
+		//lambdas - anomynous function
+		Vec2 lambdas;
+		lambdas[0] = C2 / mu_max;
+		lambdas[1] = C1 / mu_max;
+		return lambdas;
+	}
+
+	//if p is on the far side of a, we return the following
+	if ((a  <= b && p <= a) || (a >= b && p >= a))
+	{
+		return Vec2(1.0f, 0.0f);
+	}
+
+	//p must be on far side of b
+	return Vec2(0.0f, 1.0f);
+}
+
+//For 2-simplex / triangle , we do the same thing , however only we project the triangle onto the xy . yz and zx plane. we then 
+//determine which one has the greatest area. then projecting that point onto that plane
+//if the point is inside the traingle, we calculate the barycentric coordinates and be done , if not we then project the point onto the edges of
+//of the triangle using 1-simplex triangle projection method , and ise the closest projection
+
+int CompareSigns(float a, float b)
+{
+	if (a > 0.0f && b > 0.0f)
+	{
+		return 1;
+	}
+	if (a < 0.0f && b < 0.0f)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+Vec3 SignedVolume2D(const Vec3& s1, const Vec3& s2, const Vec3& s3)
+{
+	Vec3 normal = (s2 - s1).Cross(s3 - s1);
+
+	Vec3 p0 = normal * s1.Dot(normal) / normal.GetLengthSqr();
+
+	//Find the axis with the greatest projected area
+	int id = 0;
+	float max_area = 0;
+
+	for (int i = 0; i < 3; i++)
+	{
+		int j = (i + 1) % 3;
+		int k = (i + 2) % 3;
+
+		Vec2 a = Vec2(s1[j], s1[k]);
+		Vec2 b = Vec2(s2[j], s2[k]);
+		Vec2 c = Vec2(s3[j], s3[k]);
+	
+		Vec2 ab = b - a;
+		Vec2 ac = c - a;
+
+		float area = ab.x * ac.y - ab.y * ac.x;
+		if (area * area > max_area * max_area)
+		{
+			id = 0;
+			max_area = area;
+		}
+	}
+
+	//Project onto the appropriate axis
+	int x = (id + 1) % 3;
+	int y = (id + 2) % 3;
+
+	Vec2 s[3];
+	s[0] = Vec2(s1[x], s1[y]);
+	s[1] = Vec2(s2[x], s2[y]);
+	s[2] = Vec2(s3[x], s3[y]);
+
+	Vec2 p = Vec2(p0[x], p0[y]);
+
+	//Get the sub-areas of the triangles formed from the projected origin and edges
+	Vec3 areas;
+	for (int i = 0; i < 3; i++)
+	{
+		int j = (i + 1) % 3;
+		int k = (i + 2) % 3;
+
+		Vec2 a = p;
+		Vec2 b = s[j];
+		Vec2 c = s[k];
+
+		Vec2 ab = b - a;
+		Vec2 ac = c - a;
+
+		//Calculating all the areas
+		areas[i] = ab.x * ac.y - ab.y * ac.x;
+	}
+
+	//If the projected origin is inside the triangle , then returns the barycentric points
+
+
+
+
 }
