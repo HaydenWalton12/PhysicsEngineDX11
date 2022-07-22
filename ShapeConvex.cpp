@@ -915,8 +915,149 @@ Vec3 SignedVolume2D(const Vec3& s1, const Vec3& s2, const Vec3& s3)
 	}
 
 	//If the projected origin is inside the triangle , then returns the barycentric points
+	if (CompareSigns(max_area , areas[0]) >  0 && CompareSigns(max_area , areas[1]) > 0 && CompareSigns(max_area , areas[2]) > 0)
+	{
+		Vec3 lambdas = areas / max_area;
+		return lambdas;
+	
+	
+	}
+
+	//If previous condition is false , we need to project onto the egdes and determine
+	//the closest point to the edges
+
+	float distance = 1e10;
+	Vec3 lambdas = Vec3(1.0f, 0.0f, 0.0f);
+
+	for (int i = 0; i < 3; i++)
+	{
+		int k = (i + 1) % 3;
+		int I = (i + 2) % 3;
+
+		Vec3 edges_points[3];
+		edges_points[0] = s1;
+		edges_points[1] = s2;
+		edges_points[2] = s3;
+
+		Vec2 lambda_edge = SignedVolume1D(edges_points[k], edges_points[I]);
+		Vec3 point = edges_points[k] * lambda_edge[0] + edges_points[I] * lambda_edge[1];
+
+		if (point.GetLengthSqr() < distance)
+		{
+			distance = point.GetLengthSqr();
+			lambdas[i] = 0;
+			lambdas[k] = lambda_edge[0];
+			lambdas[I] = lambda_edge[1];
+		}
+	}
+	return lambdas;
+
+}
+
+//Final 3-simplex / tetrahedron function to calculate its barycentric coordinates ,if it isnt
+//check each face for which projection is closest
+
+Vec4 SignedVolume3D(const Vec3& s1, const Vec3& s2, const Vec3& s3, const Vec3& s4)
+{
+	Mat4 matrix;
+	matrix.rows[0] = Vec4(s1.x, s2.x, s3.x, s4.x);
+	matrix.rows[1] = Vec4(s1.y, s2.y, s3.y, s4.y);
+	matrix.rows[2] = Vec4(s1.z, s2.z, s3.z, s4.z);
+	matrix.rows[3] = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	Vec4 C4;
+	C4[0] = matrix.Cofactor(3, 0);
+	C4[0] = matrix.Cofactor(3, 1);
+	C4[0] = matrix.Cofactor(3, 2);
+	C4[0] = matrix.Cofactor(3, 3);
+
+	const float determinant_matrix = C4[0] + C4[1] + C4[2] + C4[3];
+
+	//If the barycentric coordinates put the origin inside the simplex, then return them
+	if (CompareSigns(determinant_matrix , C4[0]) > 0 && CompareSigns(determinant_matrix , C4[1]) > 0 
+		&& CompareSigns(determinant_matrix , C4[2]) > 0 && CompareSigns(determinant_matrix, C4[3]) > 0)
+	{
+		Vec4 lambdas = C4 * (1.0f / determinant_matrix);
+		return lambdas;
+	}
+
+	//IF we get here , we need to project the origin onto the faces and determine
+	// the closest one
+	Vec4 lambdas;
+	float distance = 1e10;
+	for (int i = 0; i < 4; i++)
+	{
+		int k = (i + 1) % 4;
+		int I = (i + 2) % 4;
+
+		Vec3  face_points[4];
+		face_points[0] = s1;
+		face_points[1] = s2;
+		face_points[2] = s3;
+		face_points[3] = s4;
+	
+		Vec3 lambdas_face = SignedVolume2D(face_points[i], face_points[j], face_points[k]);
+		Vec3 point = face_points[i] * lambdas_face[0] + face_points[j] * lambdas_face[1] + face_points[k]
+			* lambdas_face[2];
+
+		if (point.GetLengthSqr() < distance)
+		{
+			distance = point.GetLengthSqr();
+			lambdas[i] = lambdas_face[0];
+			lambdas[j] = lambdas_face[1];
+			lambdas[k] = lambdas_face[2];
+		}
+	}
+
+	return lambdas;
+}
+
+//Test Utility functions will be used to make sure the functions work as expected, projecting a point onto a simplex and return
+//barycentric coordinates of this stated projection.
+void TestSignedVolumeProjection()
+{
+	const Vec3 original_points[4] =
+	{
+		Vec3(0.0f , 0.0f , 0.0f) ,
+		Vec3(1.0f , 0.0f , 0.0f) ,
+		Vec3(0.0f , 1.0f , 0.0f) ,
+		Vec3(0.0f , 0.0f , 1.0f) ,
+	};
+	Vec3 points[4];
+	Vec4 lambdas;
+	Vec3 v;
+
+	for (int i = 0; i < 4; i++)
+	{
+		points[i] = original_points[i] + Vec3(1.0f, 1.0f, 1.0f);
+	}
+
+	lambdas = SignedVolume3D(points[0], points[1] , points[2] , points[3]);
+	v.Zero();
+
+	for (int i = 0; i < 4; i++)
+	{
+		v += points[i] * lambdas[i];
+	}
+
+	//print function here
 
 
+	for (int i = 0; i < 4; i++)
+	{
+		points[i] = original_points[i] + Vec3(-1.0f, -1.0f, -1.0f) * 0.25f;
 
+	}
+	lambdas = SignedVolume3D(points[0], points[1], points[2], points[3]);
+	v.Zero();
+	for (int i = 0; i < 4; i++)
+	{
+		v += points[i] * lambdas[i];
+	}
 
+	for (int i = 0; i < 4; i++)
+	{
+		points[i] = original_points[i] + Vec3(-1.0f, -1.0f, -1.0f) ;
+
+	}
 }
