@@ -3,6 +3,7 @@
 #include "Vector.h"
 #include "Quanternion.h"
 #include "Bounds.h"
+#include "Body.h"
 
 
 //Parent class hold all reference to the key invidual segments of each class. Each child shape class will hold attritbutes inate to the shape.
@@ -64,6 +65,71 @@ public:
 	}
 
 };
+
+
+
+
+//All the support functions take in the individual
+//poistion and orientations of the designated
+//shapes , shapes are defined in model/local space
+//we want to support point to be in world space.
+//these functions act simiar to 
+//function "findPointinfurthestdirection"
+//however with difference of adding the bias parameter.
+//
+//
+//
+//
+
+
+//The reason we use this more than
+//just the point on C , we also want the points on A & B
+//created
+struct point_t
+{
+	Vec3 xyz; // The key point on the minkowski sum
+	Vec3 point_a; // Point on body A
+	Vec3 point_b; // Point on body B
+
+	point_t() : xyz(1.0f) , point_a(0.0f) , point_b(0.0f){}
+	
+	const point_t& operator = (const point_t& rhs)
+	{
+		xyz = rhs.xyz;
+		point_a = rhs.point_a;
+		point_b = rhs.point_b;
+	
+	}
+
+
+	bool operator == (const point_t& rhs) const
+	{
+		
+		return ((point_a == rhs.point_a ) && (point_b == rhs.point_b)) && (xyz == rhs.xyz);
+	}
+};
+
+point_t Support(const Body* body_a, const Body* body_b, Vec3 direction
+	, const float bias)
+{
+	direction.Normalize();
+
+	point_t point;
+
+	//Find the point furthest in direction
+	point.point_a = body_a->_Shape->Support(direction, body_a->_Position, &body_a->_Orientation, bias);
+
+	direction *= -1.0f;
+
+	//Find the point in B furthest in opposite direction
+
+	point.point_b = body_b->_Shape->Support(direction, body_b->_Position, &body_b->_Orientation, bias);
+
+
+	//Find the point in B furthest in opposite direction
+	point.xyz = point.point_a - point.point_b;
+	return point;
+}
 
 
 
