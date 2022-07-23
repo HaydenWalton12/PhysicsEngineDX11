@@ -987,8 +987,8 @@ Vec4 SignedVolume3D(const Vec3& s1, const Vec3& s2, const Vec3& s3, const Vec3& 
 	float distance = 1e10;
 	for (int i = 0; i < 4; i++)
 	{
-		int k = (i + 1) % 4;
-		int I = (i + 2) % 4;
+		int j = (i + 1) % 4;
+		int k = (i + 2) % 4;
 
 		Vec3  face_points[4];
 		face_points[0] = s1;
@@ -1032,32 +1032,86 @@ void TestSignedVolumeProjection()
 		points[i] = original_points[i] + Vec3(1.0f, 1.0f, 1.0f);
 	}
 
-	lambdas = SignedVolume3D(points[0], points[1] , points[2] , points[3]);
-	v.Zero();
-
-	for (int i = 0; i < 4; i++)
-	{
-		v += points[i] * lambdas[i];
-	}
-
-	//print function here
-
-
-	for (int i = 0; i < 4; i++)
-	{
-		points[i] = original_points[i] + Vec3(-1.0f, -1.0f, -1.0f) * 0.25f;
-
-	}
 	lambdas = SignedVolume3D(points[0], points[1], points[2], points[3]);
 	v.Zero();
+
 	for (int i = 0; i < 4; i++)
 	{
 		v += points[i] * lambdas[i];
 	}
 
-	for (int i = 0; i < 4; i++)
-	{
-		points[i] = original_points[i] + Vec3(-1.0f, -1.0f, -1.0f) ;
+	//Print Function
+	//
+	//
+	//
+	///
 
-	}
+	for (int i = 0; i < 4; i++){points[i] = original_points[i] + Vec3(-1.0f, -1.0f, -1.0f) * 0.25;}
+	lambdas = SignedVolume3D(points[0], points[1], points[2], points[3]);
+	v.Zero();
+	for (int i = 0; i < 4; i++){v += points[i] * lambdas[i];}
+	
+	//Print Function
+	//
+	//
+	//
+	///
+
+	for (int i = 0; i < 4; i++) { points[i] = original_points[i] + Vec3(-1.0f, -1.0f, -1.0f) ; }
+	lambdas = SignedVolume3D(points[0], points[1], points[2], points[3]);
+	v.Zero();
+	for (int i = 0; i < 4; i++) { v += points[i] * lambdas[i]; }
+
+	//Print Function
+	//
+	//
+	//
+	///
+
+	for (int i = 0; i < 4; i++) { points[i] = original_points[i] + Vec3(1.0f, 1.0f, -0.5f); }
+	lambdas = SignedVolume3D(points[0], points[1], points[2], points[3]);
+	v.Zero();
+	for (int i = 0; i < 4; i++) { v += points[i] * lambdas[i]; }
+	//Print Function
+	//
+	//
+	//
+	///
+
+	points[0] = Vec3(51.1996613f , 26.19896123f , 1.91339576f);
+	points[1] = Vec3(-51.0567360f , -26.056581f , -0.436143428f );
+	points[2] = Vec3(50.8978920f , -24.1035538f , -1.04042661f);
+	points[3] = Vec3(-49.1021080f , 25.8964462f , -1.04042661f);
+	
+	lambdas = SignedVolume3D(points[0], points[1], points[2], points[3]);
+	v.Zero();
+	for (int i = 0; i < 4; i++) { v += points[i] * lambdas[i]; }
+
+	//Print Function
+
+
 }
+
+//If we are projecting the origin onto all sides of each simplex
+//it is nesssecary to do this ,GJK is an iterative
+//algorithm , meaning that the simplex buikds up over time,  
+// we will not need to check older parts of the simplex
+//since they were checked in previous iterations during the
+//algorithms execution
+
+
+//GJK - Refering back to the minkowski sum , the sum/difference
+//of to convex shapes can be used to easily determine if they interesect
+//from this , we dont need to build the entire minkowski difference
+//to find out if the intersection has occured .
+
+//We simole need the build the simplex that contains the origin, using
+//this as the total sum for the caculation
+//increases performmance when the object intersect]
+//when the object doesnt intersect, it cancels out the algorithm
+//exuection 
+
+//Earlier , we built the convex hull from a set of points, we
+//would first find the point that was furthest in a particular direction
+//this is mentioned as a support point, these 
+//support points will become important to GJK algorithm 
